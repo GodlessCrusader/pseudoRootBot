@@ -44,7 +44,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
     if (update.Type != UpdateType.Message)
         return;
     // Only process text messages
-    if (update.Message!.Type != MessageType.Text)
+    if (update.Message!.Type != MessageType.Text) 
         return;
 
     var chatId = update.Message.Chat.Id;
@@ -60,7 +60,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
     // Echo received message text
     Message sentMessage = await botClient.SendTextMessageAsync(
         chatId: chatId,
-        text: "You said:\n" + messageText,
+        text: "Fuck you, leatherman!\n" ,
         cancellationToken: cancellationToken);
 }
 
