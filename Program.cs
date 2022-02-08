@@ -4,8 +4,11 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Extensions.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using static Command;
 
+List<Command> wordsList = new List<Command>();
 List<long> chats = new List<long>();
+
 var botClient = new TelegramBotClient("5106073089:AAFUWHZLl7BN0qedxn41BRyVFPoIMjz9KB4");
 
 
@@ -49,6 +52,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
 
     var chatId = update.Message.Chat.Id;
     var messageText = update.Message.Text;
+    ParseMessage(messageText);
     if (!chats.Exists(y => y == chatId))
     {
         chats.Add(chatId);
@@ -80,3 +84,13 @@ Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, Cancell
     Console.WriteLine(ErrorMessage);
     return Task.CompletedTask;
 }
+
+void ParseMessage(string messageText) 
+{
+    string[] words =  messageText.Split(" ");
+
+
+
+    //return 0;
+}
+
