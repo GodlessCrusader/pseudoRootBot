@@ -2,7 +2,7 @@ abstract class Command
 {
     // static List<Command> wordsList = new List<Command>();
 
-    private string name;
+    protected string name = "";
     public string Name 
     {
         set{
@@ -13,5 +13,5 @@ abstract class Command
         }
     }
 
-    public abstract void Handle();
+    public abstract void Handle(string cmdLn, FilePath pwd);
 }

@@ -4,24 +4,33 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Extensions.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using static Command;
+// using static Command;
+// using static FilePath;
 
-List<Command> wordsList = new List<Command>();
+FilePath pwd = new FilePath();
+List<Command> commandList = new List<Command>();
+commandList.Add(new CdCommand());
+foreach(Command c in commandList)
+{
+    Console.WriteLine($"Name : {c.Name}");
+}
 List<long> chats = new List<long>();
-
 var botClient = new TelegramBotClient("5106073089:AAFUWHZLl7BN0qedxn41BRyVFPoIMjz9KB4");
-
-
 var cts  = new CancellationTokenSource();
 var receiverOptions = new ReceiverOptions { // receives all the shit you send
     AllowedUpdates = { }
 };
+
+
+
 botClient.StartReceiving(
     HandleUpdateAsync,
     HandleErrorAsync,
     receiverOptions,
     cancellationToken: cts.Token
 );
+
+
 var me = await botClient.GetMeAsync();
 Console.WriteLine($"Hello, World! I am user {me.Id} and my name is {me.FirstName}.");
 Console.ReadLine();
@@ -29,17 +38,6 @@ Console.ReadLine();
 
 
 
-
-
-
-
-void ShowChats(){
-    int i = 1;
-    foreach (long id in chats) {
-        Console.WriteLine($"id {i++} : {id}");
-    }
-    Console.WriteLine();
-}
 
 async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
 {
@@ -52,19 +50,33 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
 
     var chatId = update.Message.Chat.Id;
     var messageText = update.Message.Text;
-    ParseMessage(messageText);
-    if (!chats.Exists(y => y == chatId))
+    Console.WriteLine(messageText);
+        if (!chats.Exists(y => y == chatId))
     {
         chats.Add(chatId);
     }
+
+    List<string> cmdLn = messageText.Split(" ").ToList<string>();
+    Console.WriteLine("cmdLn:");
+    Console.WriteLine($" 0 element: {cmdLn[0]}");
+    foreach(string s in cmdLn)
+    {
+        Console.WriteLine(s);
+    }
+    if(commandList.Exists(x => x.Name == cmdLn[0]))
+    {
+        // Console.WriteLine("entered");
+        commandList.Find(x => x.Name == cmdLn[0]).Handle(messageText, pwd);
+    }
+      // returns Command with corresponding name
+
+
     ShowChats();
 
-    // Console.WriteLine($"Received a '{messageText}' message in chat {chatId}.");
-
-    // Echo received message text
+    // Echo 
     Message sentMessage = await botClient.SendTextMessageAsync(
         chatId: chatId,
-        text: "Fuck you, leatherman!\n" ,
+        text: pwd.GetString() ,
         cancellationToken: cancellationToken);
 }
 
@@ -85,12 +97,10 @@ Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, Cancell
     return Task.CompletedTask;
 }
 
-void ParseMessage(string messageText) 
-{
-    string[] words =  messageText.Split(" ");
-
-
-
-    //return 0;
+void ShowChats(){
+    int i = 1;
+    foreach (long id in chats) {
+        Console.WriteLine($"id {i++} : {id}");
+    }
+    Console.WriteLine();
 }
-
