@@ -4,9 +4,13 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Extensions.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Newtonsoft.Json;
+using System.IO;
 // using static Command;
 // using static FilePath;
 
+string fileTree = "";
+Directory rootDirectory = new Directory("root",null);
 FilePath pwd = new FilePath();
 List<Command> commandList = new List<Command>();
 commandList.Add(new CdCommand());
@@ -21,7 +25,16 @@ var receiverOptions = new ReceiverOptions { // receives all the shit you send
     AllowedUpdates = { }
 };
 
+//  using (StreamReader sr = System.IO.File.OpenText("testFS.Json"))
+//         {
+//             fileTree = sr.ReadToEnd();
+//         }
 
+ using (StreamWriter sw = System.IO.File.CreateText("testFS.Json"))
+        {
+            sw.Write(fileTree);
+            
+        }
 
 botClient.StartReceiving(
     HandleUpdateAsync,
