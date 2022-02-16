@@ -3,8 +3,8 @@ class Document : RootMember {
 long MessageId {
     set;
     get;
-}
-public Document(string name, RootMember parent, long mesId){
+} = 0;
+public Document(string name, Directory parent, long mesId){
     if(name!=null)
     {
         base.Name = name;

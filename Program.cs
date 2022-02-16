@@ -10,7 +10,7 @@ using System.IO;
 // using static FilePath;
 
 string fileTree = "";
-Directory rootDirectory = new Directory("root",null);
+Directory rootDirectory = new Directory("rom",null);
 FilePath pwd = new FilePath();
 List<Command> commandList = new List<Command>();
 commandList.Add(new CdCommand());

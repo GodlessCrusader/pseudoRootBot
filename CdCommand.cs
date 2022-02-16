@@ -30,7 +30,13 @@ class CdCommand : Command
 
             else 
             {
-                pwd.directories.Add(args[1]);
+                List<string> cdPath = args[1].Split(@"\").ToList<string>();
+                using(StreamReader sr = new StreamReader("testFS.json"))
+                {
+                    Directory? rootDir = Newtonsoft.Json.JsonConvert.DeserializeObject<Directory>(sr.ReadToEnd());
+                    Directory current = Directory.GetDirectory(pwd.directories[pwd.directories.Count],pwd.directories[pwd.directories.Count - 1], rootDir);
+                    //pwd.directories.Add(args[1]);
+                }
             }
         }
 

@@ -1,9 +1,9 @@
 abstract class RootMember {
-    public RootMember parentDir;
+    public Directory? parentDir;
     public string Name {
         set;
         get;
-    }
+    } = "rom";
 
     // public RootMember(string name, RootMember parent)
     // {
