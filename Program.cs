@@ -9,11 +9,9 @@ using System.IO;
 // using static Command;
 // using static FilePath;
 
-string fileTree = "";
 Directory rootDirectory = new Directory("rom",null);
 FilePath pwd = new FilePath();
-List<Command> commandList = new List<Command>();
-commandList.Add(new CdCommand());
+List<Command> commandList = new List<Command>() {new CdCommand(), new MkdirCommand()};
 foreach(Command c in commandList)
 {
     Console.WriteLine($"Name : {c.Name}");
@@ -30,11 +28,6 @@ var receiverOptions = new ReceiverOptions { // receives all the shit you send
 //             fileTree = sr.ReadToEnd();
 //         }
 
- using (StreamWriter sw = System.IO.File.CreateText("testFS.Json"))
-        {
-            sw.Write(fileTree);
-            
-        }
 
 botClient.StartReceiving(
     HandleUpdateAsync,
@@ -69,7 +62,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
         chats.Add(chatId);
     }
 
-    List<string> cmdLn = messageText.Split(" ").ToList<string>();
+    List<string> cmdLn = messageText!.Split(" ").ToList<string>();
     Console.WriteLine("cmdLn:");
     Console.WriteLine($" 0 element: {cmdLn[0]}");
     foreach(string s in cmdLn)
@@ -78,8 +71,8 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
     }
     if(commandList.Exists(x => x.Name == cmdLn[0]))
     {
-        // Console.WriteLine("entered");
-        commandList.Find(x => x.Name == cmdLn[0]).Handle(messageText, pwd);
+         Console.WriteLine("entered");
+        commandList.Find(x => x.Name == cmdLn[0])!.Handle(messageText, pwd, "testFS.json");
     }
       // returns Command with corresponding name
 

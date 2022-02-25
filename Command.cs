@@ -1,17 +1,19 @@
 abstract class Command
 {
-    // static List<Command> wordsList = new List<Command>();
+    static List<Command> cmdList = new List<Command>();
 
-    protected string name = "";
+    private string name = "";
     public string Name 
     {
-        set{
+        set{ 
             name = value;
         }
         get{
             return name;
         }
     }
+    
 
-    public abstract void Handle(string cmdLn, FilePath pwd);
+    public abstract void Handle(string cmdLn, FilePath pwd, string fileName);
 }
+
