@@ -72,7 +72,18 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
     if(commandList.Exists(x => x.Name == cmdLn[0]))
     {
          Console.WriteLine("entered");
-        commandList.Find(x => x.Name == cmdLn[0])!.Handle(messageText, pwd, "testFS.json");
+        try
+        {
+            commandList.Find(x => x.Name == cmdLn[0])!.Handle(messageText, pwd, "testFS.json");
+        }
+        catch(Exception ex)
+        {
+        await botClient.SendTextMessageAsync(
+        chatId: chatId,
+        text: ex.ToString() ,
+        cancellationToken: cancellationToken);
+  
+        }
     }
       // returns Command with corresponding name
 

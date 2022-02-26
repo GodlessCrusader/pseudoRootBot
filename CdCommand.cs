@@ -24,7 +24,7 @@ class CdCommand : Command
                 }
                 else
                 {
-                    
+                    throw new Exception("Working directory is root directory. Can't go up");
                 }
             }
 
@@ -55,7 +55,7 @@ class CdCommand : Command
                             }
                             else
                             {
-                                break;//user recieves error message
+                                throw new Exception($"Destination point: {args[1]} does not exist");
                             }
                         }
                         if(current.Name == cdPath[cdPath.Count-1])

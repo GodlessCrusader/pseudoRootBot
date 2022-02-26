@@ -12,8 +12,9 @@ class MkdirCommand : Command
         var args = cmdLn.Split(" ").ToList();
         if(args.Capacity>1)
         {
-            if(args[1].Intersect(forbidenSyms).Count()>1)
+            if(args[1].Intersect(forbiddenSyms).Count()>1)
             {
+                throw new Exception($"Directory name contains forbidden symbols: {forbiddenSyms}");
                 //error message
             }
             else
@@ -39,7 +40,7 @@ class MkdirCommand : Command
                     
                     if(current!.CheckExistance(args[1]))
                     {
-                        //user recieves error message
+                        throw new Exception($"Directory {args[1]} already exists");
                     }
                     else
                     {
@@ -60,5 +61,5 @@ class MkdirCommand : Command
     //     if()
     //     return false;
     // }
-    private const string forbidenSyms = @"""/\,:.?#%&{}$!'@<>* +|=";
+    private const string forbiddenSyms = @"""/\,:.?#%&{}$!'@<>* +|=";
 }
