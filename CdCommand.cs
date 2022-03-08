@@ -6,7 +6,7 @@ class CdCommand : Command
         this.Name = "cd";
     }
 
-    public override void Handle(string cmdLn, FilePath pwd, string fileName)
+    public override string Handle(string cmdLn, FilePath pwd, string fileName)
     {
         List<string> args = cmdLn.Split(" ").ToList();
         if(args.Count > 1)
@@ -31,26 +31,56 @@ class CdCommand : Command
             else 
             {
                 List<string> cdPath = args[1].Split(@"\").ToList<string>();
+                foreach(string s in cdPath)
+                {
+                    s.Replace(" ", "");
+                }
                 using(StreamReader sr = new StreamReader(fileName))
                 {
                     Directory? rootDir = Newtonsoft.Json.JsonConvert.DeserializeObject<Directory>(sr.ReadToEnd());
+                    foreach(var c in rootDir!.ChildDirectories)
+                    {Console.WriteLine($"cont: {c.Name}");}
                     Directory? current;
                     if(rootDir!=null)
                     {
-                        current = Directory.GetDirectory(pwd.directories[pwd.directories.Count-1],pwd.directories[pwd.directories.Count - 2], rootDir);
+                        Console.WriteLine("Entered rootDir not null check");
+                        if(pwd.directories.Count>1)
+                        {
+                            Console.WriteLine("Entered pwd count >1 check");
+                            current = Directory.GetDirectory(pwd.directories[pwd.directories.Count-1],pwd.directories[pwd.directories.Count - 2], rootDir);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Entered pwd count <=1 check");
+                            if(pwd.directories.Count == 1)
+                            {
+                                Console.WriteLine("Entered pwd count ==1 check");
+                                current = Directory.GetDirectory(pwd.directories[0], "rom", rootDir);
+                            }
+                            else
+                            {
+                                Console.WriteLine("Entered pwd count <1 check");
+                                current = rootDir;
+                            }
+                        }
                     }
                     else
                     {
                         current = null;
                     }
-
+                    Console.WriteLine($"Current var: {current}");
                     if(current!=null)
                     {
                         foreach(string s in cdPath)
                         {
+                            
                             if(current!.CheckExistance(s))
                             {
-                                current = current.contents.Find(x => x.Name == s) as Directory;
+                                Console.WriteLine($"s var: {s}");
+                                foreach(Directory rm in current.ChildDirectories)
+                                Console.WriteLine($"current child directories: {rm.Name}");
+                                current = current.ChildDirectories.Find(x => x.Name == s);
+                                Console.WriteLine($"Current var: {current}");
                                 //pwd.directories.Add(s);
                             }
                             else
@@ -63,11 +93,15 @@ class CdCommand : Command
                             pwd.directories = pwd.directories.Concat(cdPath).ToList();
                         }
                     }
+                    else
+                    {
+                        throw new Exception($"Destination point: {args[1]} does not exist");
+                    }
                     //pwd.directories.Add(args[1]);
                 }
             }
         }
 
-
+        return null!;
     }
 }

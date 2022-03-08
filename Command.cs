@@ -1,7 +1,5 @@
 abstract class Command
-{
-    static List<Command> cmdList = new List<Command>();
-
+{   
     private string name = "";
     public string Name 
     {
@@ -14,6 +12,6 @@ abstract class Command
     }
     
 
-    public abstract void Handle(string cmdLn, FilePath pwd, string fileName);
+    public abstract string Handle(string cmdLn, FilePath pwd, string fileName);
 }
 

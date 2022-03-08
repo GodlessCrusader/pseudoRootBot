@@ -9,16 +9,27 @@ using System.IO;
 // using static Command;
 // using static FilePath;
 
-Directory rootDirectory = new Directory("rom",null);
 FilePath pwd = new FilePath();
-List<Command> commandList = new List<Command>() {new CdCommand(), new MkdirCommand()};
+
+List<Command> commandList = new List<Command>() 
+{
+    new CdCommand(),
+    new MkdirCommand(),
+    new DeleteCommand(),
+    new TreeCommand()
+};
+
 foreach(Command c in commandList)
 {
     Console.WriteLine($"Name : {c.Name}");
 }
+
 List<long> chats = new List<long>();
+
 var botClient = new TelegramBotClient("5106073089:AAFUWHZLl7BN0qedxn41BRyVFPoIMjz9KB4");
+
 var cts  = new CancellationTokenSource();
+
 var receiverOptions = new ReceiverOptions { // receives all the shit you send
     AllowedUpdates = { }
 };
@@ -74,7 +85,14 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
          Console.WriteLine("entered");
         try
         {
-            commandList.Find(x => x.Name == cmdLn[0])!.Handle(messageText, pwd, "testFS.json");
+            string? mess = commandList.Find(x => x.Name == cmdLn[0])!.Handle(messageText, pwd, "testFS.json");
+            if(mess!=null)
+            {
+                await botClient.SendTextMessageAsync(
+                chatId: chatId,
+                text: mess ,
+                cancellationToken: cancellationToken);
+            }
         }
         catch(Exception ex)
         {

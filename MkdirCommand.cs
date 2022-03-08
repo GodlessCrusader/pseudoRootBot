@@ -7,7 +7,7 @@ class MkdirCommand : Command
     {
         this.Name = "mkdir";
     }
-    public override void Handle(string cmdLn, FilePath pwd, string fileName)
+    public override string Handle(string cmdLn, FilePath pwd, string fileName)
     {
         var args = cmdLn.Split(" ").ToList();
         if(args.Capacity>1)
@@ -25,16 +25,22 @@ class MkdirCommand : Command
                     jsonRepresent = str.ReadToEnd();
                 }
                 Directory? rootDir = Newtonsoft.Json.JsonConvert.DeserializeObject<Directory>(jsonRepresent);
-                Directory? current;
+                Directory? current = null;
                 if(rootDir!=null)
                 {
-                    current = Directory.GetDirectory(pwd.directories[pwd.directories.Count-1],pwd.directories[pwd.directories.Count - 2], rootDir);
+                    if(pwd.directories.Count>1)
+                    {
+                        current = Directory.GetDirectory(pwd.directories[pwd.directories.Count-1],pwd.directories[pwd.directories.Count - 2], rootDir);
+                    }
+                    if(pwd.directories.Count == 0)
+                    {
+                        current = rootDir;
+                    }
+                    if(pwd.directories.Count == 1)
+                    {
+                        current = Directory.GetDirectory(pwd.directories[0],rootDir.Name ,rootDir);
+                    }
                 }
-                else
-                {
-                    current = null;
-                }
-
                 if(current!=null)
                 {
                     
@@ -44,7 +50,7 @@ class MkdirCommand : Command
                     }
                     else
                     {
-                        current.contents.Add(new Directory(args[1], current));
+                        current.ChildDirectories.Add(new Directory(args[1], current));
                         jsonRepresent = Newtonsoft.Json.JsonConvert.SerializeObject(rootDir);
                         using(StreamWriter sw = new StreamWriter(fileName))
                         {
@@ -52,9 +58,19 @@ class MkdirCommand : Command
                         }
                     }                        
                 }
-            
+                else
+                {
+                    rootDir = new Directory("rom", null);
+                    rootDir.ChildDirectories.Add(new Directory(args[1], rootDir));
+                        jsonRepresent = Newtonsoft.Json.JsonConvert.SerializeObject(rootDir);
+                        using(StreamWriter sw = new StreamWriter(fileName))
+                        {
+                            sw.Write(jsonRepresent);
+                        }
+                }
             }   
         }
+        return null!;
     }
     // private bool forbidenSymsCheck()
     // {

@@ -1,11 +1,17 @@
-class Directory : RootMember
+class Directory
 {  
-    public List<RootMember> contents = new List<RootMember>();
+    public string Name {get; set; }
+    public string? parentDir {get; set; }
+    public List<Directory> ChildDirectories = new List<Directory>();
+    public List<Document> DocContents = new List<Document>();
    
     public Directory(string name, Directory? parent)
     {
         this.Name = name;
-        this.parentDir = parent;
+        if(parent!=null)
+        {
+            this.parentDir = parent.Name;
+        }
     }
 
     public bool IsRootDirectory()
@@ -21,18 +27,24 @@ class Directory : RootMember
     }
 
     public bool CheckExistance(string name)
-    {
-        
-        
-        foreach(RootMember rm in this.contents)
+    { 
+        foreach(Directory rm in this.ChildDirectories)
         {
-            if(rm.Name == name && rm is Directory)
+            if(rm.Name == name ) //&& rm is Directory
+            {
+                return true;
+            }
+        }
+
+        foreach(Document rm in this.DocContents)
+        {
+            if(rm.Name == name ) //&& rm is Directory
             {
                 return true;
             }
         }
         
-            return false;
+        return false;
     }
 
     public static Directory? GetDirectory(string dirName, string parentName, Directory rootDir)
@@ -40,26 +52,23 @@ class Directory : RootMember
 
         if(rootDir.Name == parentName)
         {
-            foreach(RootMember rm in rootDir.contents)
+            foreach(Directory rm in rootDir.ChildDirectories)
             {
-                if(rm is Directory && rm.Name == dirName)
+                if(rm.Name == dirName)
                 {
-                    return rm as Directory;
+                    return rm;
                 }
             }
         }
         else
         {
-            foreach(RootMember rm in rootDir.contents)
+            foreach(Directory rm in rootDir.ChildDirectories)
             {
-                if (rm is Directory)
+                if(GetDirectory(dirName, parentName, rm) != null)
                 {
-                    Directory? temp = rm as Directory;
-                    if(temp != null && GetDirectory(dirName, parentName, temp) != null)
-                    {
-                        return GetDirectory(dirName, parentName, temp);
-                    }
+                    return GetDirectory(dirName, parentName, rm);
                 }
+                
             }
         }
         return null;

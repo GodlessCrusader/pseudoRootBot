@@ -1,19 +1,22 @@
-class Document : RootMember {
+class Document{
 
+public string Name{set; get; }
+
+public string ParentDir{set; get; }
 long MessageId {
     set;
     get;
 } = 0;
-public Document(string name, Directory parent, long mesId){
+public Document(string name, string parent, long mesId){
     if(name!=null)
     {
-        base.Name = name;
+        this.Name = name;
     }
     else
     {
-        base.Name = "new document";
+        this.Name = "new document";
     }
-    base.parentDir = parent;
+    this.ParentDir = parent;
     this.MessageId= mesId;
 }
 }
