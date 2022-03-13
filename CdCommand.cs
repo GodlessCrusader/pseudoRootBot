@@ -15,11 +15,6 @@ class CdCommand : Command
             {
                 if(pwd.directories.Count>0)
                 {
-                    // Console.WriteLine($"pwd Capacity:{pwd.directories.Capacity}");
-                    // foreach(string s in pwd.directories)
-                    // {
-                    //     Console.WriteLine($"elements of pwd.directories: {s}");
-                    // }
                     pwd.directories.RemoveAt(pwd.directories.Count-1);
                 }
                 else
@@ -44,29 +39,23 @@ class CdCommand : Command
                     if(rootDir!=null)
                     {
                         Console.WriteLine("Entered rootDir not null check");
-                        if(pwd.directories.Count>1)
+                        if(pwd.directories.Count>=1)
                         {
-                            Console.WriteLine("Entered pwd count >1 check");
-                            current = Directory.GetDirectory(pwd.directories[pwd.directories.Count-1],pwd.directories[pwd.directories.Count - 2], rootDir);
+                            Console.WriteLine("Entered pwd count >=1 check");
+                            current = Directory.GetDirectory(pwd, rootDir);
                         }
                         else
                         {
                             Console.WriteLine("Entered pwd count <=1 check");
-                            if(pwd.directories.Count == 1)
-                            {
-                                Console.WriteLine("Entered pwd count ==1 check");
-                                current = Directory.GetDirectory(pwd.directories[0], "rom", rootDir);
-                            }
-                            else
-                            {
-                                Console.WriteLine("Entered pwd count <1 check");
-                                current = rootDir;
-                            }
+                            Console.WriteLine("Entered pwd count <1 check");
+                            current = rootDir;
+                            
                         }
                     }
                     else
                     {
                         current = null;
+                        
                     }
                     Console.WriteLine($"Current var: {current}");
                     if(current!=null)
@@ -81,7 +70,7 @@ class CdCommand : Command
                                 Console.WriteLine($"current child directories: {rm.Name}");
                                 current = current.ChildDirectories.Find(x => x.Name == s);
                                 Console.WriteLine($"Current var: {current}");
-                                //pwd.directories.Add(s);
+                                
                             }
                             else
                             {
@@ -97,7 +86,6 @@ class CdCommand : Command
                     {
                         throw new Exception($"Destination point: {args[1]} does not exist");
                     }
-                    //pwd.directories.Add(args[1]);
                 }
             }
         }

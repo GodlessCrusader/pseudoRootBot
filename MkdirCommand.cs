@@ -30,15 +30,12 @@ class MkdirCommand : Command
                 {
                     if(pwd.directories.Count>1)
                     {
-                        current = Directory.GetDirectory(pwd.directories[pwd.directories.Count-1],pwd.directories[pwd.directories.Count - 2], rootDir);
+                        //bugged need a way to define directory correctly
+                        current = Directory.GetDirectory(pwd, rootDir);
                     }
                     if(pwd.directories.Count == 0)
                     {
                         current = rootDir;
-                    }
-                    if(pwd.directories.Count == 1)
-                    {
-                        current = Directory.GetDirectory(pwd.directories[0],rootDir.Name ,rootDir);
                     }
                 }
                 if(current!=null)

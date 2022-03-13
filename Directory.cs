@@ -47,64 +47,19 @@ class Directory
         return false;
     }
 
-    public static Directory? GetDirectory(string dirName, string parentName, Directory rootDir)
+    public static Directory? GetDirectory(FilePath pwd, Directory rootDir)
     {
+        Directory? currentDir = rootDir;
+        foreach(string dirName in pwd.directories)
+        {
+            Console.WriteLine($"dirName1:{dirName}");
+            if(currentDir.CheckExistance(dirName))
+            {currentDir = currentDir.ChildDirectories.Find(x => x.Name == dirName);
+            GetDirectory(pwd, currentDir);}
 
-        if(rootDir.Name == parentName)
-        {
-            foreach(Directory rm in rootDir.ChildDirectories)
-            {
-                if(rm.Name == dirName)
-                {
-                    return rm;
-                }
-            }
         }
-        else
-        {
-            foreach(Directory rm in rootDir.ChildDirectories)
-            {
-                if(GetDirectory(dirName, parentName, rm) != null)
-                {
-                    return GetDirectory(dirName, parentName, rm);
-                }
-                
-            }
-        }
-        return null;
+        return currentDir;
     }
-
-    // public bool CheckExistance(string dir, string parent)
-    // {
-    //     if(this.Name == dir)
-    //     {   
-    //         return true;                                                                           awaits for the search method
-    //     }
-
-    //     else if(this.Name == parent)
-    //     {
-    //         foreach(RootMember rm in this.contents)
-    //         {
-    //             if(rm.Name == dir)
-    //             {
-    //                 return true;
-    //             }
-    //         }
-    //     }
-    //     else
-    //     {
-    //         foreach(RootMember rm in this.contents)
-    //         {
-    //             if(rm is Directory)
-    //             {
-    //                 var temp = rm as Directory;
-    //                 if(temp.CheckExistance(dir,parent))
-    //                 {
-    //                     return true;
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     return false;
+    
 }
   
