@@ -19,82 +19,37 @@ class TreeCommand : Command {
 
         if(rootDir != null)
         {
-           return DrawFileTree(rootDir,tree, 0, 0).ToString();
+           return DrawFileTree(rootDir,tree, 0, new List<int>()).ToString();
         }
         
         return tree.ToString();
     }
 
-    public StringBuilder DrawFileTree(Directory dir, StringBuilder tree, int iter, int lastCount)
+    private StringBuilder DrawFileTree(Directory dir, StringBuilder tree, int lvl, List<int> downLineNums)
     {
-        iter++;
-        tree.AppendLine(dir.Name);
-        // for(int i=0; i<dir.Name.Length-1;i++)
-        // {
-        //     tree.Append(" ");
-        // }
+        lvl++;
+        
+        tree.AppendLine($"|__{dir.Name}");
         foreach(Directory d in dir.ChildDirectories)
         {
-            if(dir.parentDir == null)
+            for(int i = 0 ; i<lvl ; i++)
             {
-                if(dir.ChildDirectories[dir.ChildDirectories.Count-1] == d)
+                if(downLineNums.Exists(x => x == i))
                 {
-                lastCount++;
-                for(int i = 0; i<lastCount;i++)
-                {
-                    tree.Append("  ");
-                }
-                for(int i = lastCount; i<iter;i++)
-                {
-                    tree.Append("  |");
-                }
-                tree.Append("|___");
+                    tree.Append("|   ");
                 }
                 else
                 {
-                lastCount++;
-                for(int i = 0; i<lastCount;i++)
-                {
-                    tree.Append("|  ");
+                    tree.Append("   ");
                 }
-                for(int i = lastCount; i<iter;i++)
-                {
-                    tree.Append("  |");
-                }
-                tree.Append("|___");
-                }
-
             }
-            else if( lastCount > 0)
+            if(d != dir.ChildDirectories[dir.ChildDirectories.Count-1])
             {
-                string s = "___";
-                if(dir.ChildDirectories[dir.ChildDirectories.Count-1] == d)
-                {
-                    lastCount++;
-                    s = "|___";
-                }
-                for(int i = 0; i<lastCount;i++)
-                {
-                    tree.Append("  ");
-                }
-                for(int i = lastCount; i<iter;i++)
-                {
-                    tree.Append("  |");
-                }
-                tree.Append(s);
+                downLineNums.Add(lvl);
             }
-            else
-            {
-                for(int i = 0; i<iter;i++)
-                {
-                    tree.Append("  |");
-                }
-                tree.Append("___");
-                
-            }
-           
-            DrawFileTree(d, tree, iter, lastCount);
+            DrawFileTree(d,tree,lvl,downLineNums);
         }
+        
         return tree;
     }
 
