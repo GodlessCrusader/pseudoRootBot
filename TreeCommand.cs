@@ -28,7 +28,8 @@ class TreeCommand : Command {
     private StringBuilder DrawFileTree(Directory dir, StringBuilder tree, int lvl, List<int> downLineNums)
     {
         lvl++;
-        
+        foreach(int dm in downLineNums)
+            Console.WriteLine($"lvl {lvl} dln {dm} ");
         tree.AppendLine($"|__{dir.Name}");
         foreach(Directory d in dir.ChildDirectories)
         {
@@ -43,11 +44,16 @@ class TreeCommand : Command {
                     tree.Append("   ");
                 }
             }
-            if(d != dir.ChildDirectories[dir.ChildDirectories.Count-1])
+            if(d != dir.ChildDirectories.Last())
             {
                 downLineNums.Add(lvl);
             }
+            else
+            {
+                downLineNums.Remove(lvl);
+            }
             DrawFileTree(d,tree,lvl,downLineNums);
+            
         }
         
         return tree;

@@ -30,63 +30,68 @@ class CdCommand : Command
                 {
                     s.Replace(" ", "");
                 }
+
+                Directory? rootDir;
+
                 using(StreamReader sr = new StreamReader(fileName))
                 {
-                    Directory? rootDir = Newtonsoft.Json.JsonConvert.DeserializeObject<Directory>(sr.ReadToEnd());
-                    foreach(var c in rootDir!.ChildDirectories)
-                    {Console.WriteLine($"cont: {c.Name}");}
-                    Directory? current;
-                    if(rootDir!=null)
+                    rootDir = Newtonsoft.Json.JsonConvert.DeserializeObject<Directory>(sr.ReadToEnd());
+                }
+
+                Directory? current;
+
+                if(rootDir!=null)
+                {
+                    Console.WriteLine("Entered rootDir not null check");
+                    if(pwd.directories.Count>=1)
                     {
-                        Console.WriteLine("Entered rootDir not null check");
-                        if(pwd.directories.Count>=1)
+                        Console.WriteLine("Entered pwd count >=1 check");
+                        current = Directory.GetDirectory(pwd, rootDir);
+                        Console.WriteLine($"current after gd {current==null}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Entered pwd count <=1 check");
+                        Console.WriteLine("Entered pwd count <1 check");
+                        current = rootDir;
+                        
+                    }
+                }
+                else
+                {
+                    current = null;
+                    
+                }
+                Console.WriteLine($"Current var: {current.Name}");
+                if(current!=null)
+                {
+                    foreach(string s in cdPath)
+                    {
+                        
+                        if(current!.CheckExistance(s))
                         {
-                            Console.WriteLine("Entered pwd count >=1 check");
-                            current = Directory.GetDirectory(pwd, rootDir);
+                            Console.WriteLine($"s var: {s}");
+                            foreach(Directory rm in current.ChildDirectories)
+                            Console.WriteLine($"current child directories: {rm.Name}");
+                            current = current.ChildDirectories.Find(x => x.Name == s);
+                            Console.WriteLine($"Current var: {current.Name}");
+                            
                         }
                         else
                         {
-                            Console.WriteLine("Entered pwd count <=1 check");
-                            Console.WriteLine("Entered pwd count <1 check");
-                            current = rootDir;
-                            
+                            throw new Exception($"Destination point: {args[1]} does not exist");
                         }
                     }
-                    else
+                    if(current.Name == cdPath[cdPath.Count-1])
                     {
-                        current = null;
-                        
-                    }
-                    Console.WriteLine($"Current var: {current}");
-                    if(current!=null)
-                    {
-                        foreach(string s in cdPath)
-                        {
-                            
-                            if(current!.CheckExistance(s))
-                            {
-                                Console.WriteLine($"s var: {s}");
-                                foreach(Directory rm in current.ChildDirectories)
-                                Console.WriteLine($"current child directories: {rm.Name}");
-                                current = current.ChildDirectories.Find(x => x.Name == s);
-                                Console.WriteLine($"Current var: {current}");
-                                
-                            }
-                            else
-                            {
-                                throw new Exception($"Destination point: {args[1]} does not exist");
-                            }
-                        }
-                        if(current.Name == cdPath[cdPath.Count-1])
-                        {
-                            pwd.directories = pwd.directories.Concat(cdPath).ToList();
-                        }
-                    }
-                    else
-                    {
-                        throw new Exception($"Destination point: {args[1]} does not exist");
+                        pwd.directories = pwd.directories.Concat(cdPath).ToList();
                     }
                 }
+                else
+                {
+                    throw new Exception($"Destination point: {args[1]} does not exist");
+                }
+                
             }
         }
 

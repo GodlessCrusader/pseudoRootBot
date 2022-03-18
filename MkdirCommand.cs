@@ -28,7 +28,7 @@ class MkdirCommand : Command
                 Directory? current = null;
                 if(rootDir!=null)
                 {
-                    if(pwd.directories.Count>1)
+                    if(pwd.directories.Count>=1)
                     {
                         //bugged need a way to define directory correctly
                         current = Directory.GetDirectory(pwd, rootDir);
@@ -69,10 +69,5 @@ class MkdirCommand : Command
         }
         return null!;
     }
-    // private bool forbidenSymsCheck()
-    // {
-    //     if()
-    //     return false;
-    // }
     private const string forbiddenSyms = @"""/\,:.?#%&{}$!'@<>* +|=";
 }

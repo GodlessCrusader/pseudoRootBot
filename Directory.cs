@@ -49,16 +49,38 @@ class Directory
 
     public static Directory? GetDirectory(FilePath pwd, Directory rootDir)
     {
-        Directory? currentDir = rootDir;
-        foreach(string dirName in pwd.directories)
+        Directory curDir = rootDir;
+        FilePath p = pwd;
+        int i = 0;
+        while(i < p.directories.Count)
         {
-            Console.WriteLine($"dirName1:{dirName}");
-            if(currentDir.CheckExistance(dirName))
-            {currentDir = currentDir.ChildDirectories.Find(x => x.Name == dirName);
-            GetDirectory(pwd, currentDir);}
-
+            Console.WriteLine($"p[i] {p.directories[i]} i {i.ToString()}");
+            if(curDir.ChildDirectories.Exists(x => x.Name == p.directories[i]))
+            {
+                curDir = curDir.ChildDirectories.Find(x => x.Name == p.directories[i]);
+                i++;
+            }
+            else
+            {
+                throw new Exception("getdir error");
+            }
         }
-        return currentDir;
+        return curDir;
+        // Directory result = rootDir;
+        // Console.WriteLine($"pwd count {pwd.directories.Count} i {j}");
+        // for(int i = j; i<pwd.directories.Count; i++)
+        // {
+        //     if(rootDir.CheckExistance(pwd.directories[i]))
+        //     {
+        //         result = GetDirectory(pwd, rootDir.ChildDirectories.Find(x => x.Name == pwd.directories[i]), ++i);
+        //     }
+        //     else
+        //     {
+        //         throw new Exception("GetDIr");
+        //     }
+
+        // }
+        // return result;
     }
     
 }
