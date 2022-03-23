@@ -1,12 +1,16 @@
+using Telegram.Bot;
+
 class CdCommand : Command
 {
 
-    public CdCommand()
+    public CdCommand(TelegramBotClient botClient, CancellationToken ct)
     {
         this.Name = "cd";
+        this.BotClient = botClient;
+        this.CancellationToken = ct;
     }
 
-    public override string Handle(string cmdLn, FilePath pwd, string fileName)
+    public override string Handle(string cmdLn, FilePath pwd, string fileName, long chatId)
     {
         List<string> args = cmdLn.Split(" ").ToList();
         if(args.Count > 1)

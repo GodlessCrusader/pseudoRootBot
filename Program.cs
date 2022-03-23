@@ -11,12 +11,18 @@ using System.IO;
 
 FilePath pwd = new FilePath();
 
+var botClient = new TelegramBotClient("5106073089:AAFUWHZLl7BN0qedxn41BRyVFPoIMjz9KB4");
+
+var cts  = new CancellationTokenSource();
+
 List<Command> commandList = new List<Command>() 
 {
-    new CdCommand(),
-    new MkdirCommand(),
-    new DeleteCommand(),
-    new TreeCommand()
+    new CdCommand(botClient, cts.Token),
+    new MkdirCommand(botClient, cts.Token),
+    new DeleteCommand(botClient, cts.Token),
+    new TreeCommand(botClient, cts.Token),
+    new CreateCommand(botClient, cts.Token),
+    new LsCommand(botClient, cts.Token)
 };
 
 foreach(Command c in commandList)
@@ -26,9 +32,7 @@ foreach(Command c in commandList)
 
 List<long> chats = new List<long>();
 
-var botClient = new TelegramBotClient("5106073089:AAFUWHZLl7BN0qedxn41BRyVFPoIMjz9KB4");
 
-var cts  = new CancellationTokenSource();
 
 var receiverOptions = new ReceiverOptions { // receives all the shit you send
     AllowedUpdates = { }
@@ -61,9 +65,13 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
     // Only process Message updates: https://core.telegram.org/bots/api#message
     if (update.Type != UpdateType.Message)
         return;
-    // Only process text messages
-    if (update.Message!.Type != MessageType.Text) 
+    if(update.Message.Type == MessageType.Document)
+    {
+        var mesId = update.Message.MessageId;
+        var documentName = update.Message.Document.FileName;
+        CreateCommand.Handle(pwd, "testFS.json", documentName, mesId);
         return;
+    }
 
     var chatId = update.Message.Chat.Id;
     var messageText = update.Message.Text;
@@ -82,10 +90,9 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
     }
     if(commandList.Exists(x => x.Name == cmdLn[0]))
     {
-         Console.WriteLine("entered");
         try
         {
-            string? mess = commandList.Find(x => x.Name == cmdLn[0])!.Handle(messageText, pwd, "testFS.json");
+            string? mess = commandList.Find(x => x.Name == cmdLn[0])!.Handle(messageText, pwd, "testFS.json", chatId);
             if(mess!=null)
             {
                 await botClient.SendTextMessageAsync(

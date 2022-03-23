@@ -3,11 +3,11 @@ class Document{
 public string Name{set; get; }
 
 public string ParentDir{set; get; }
-long MessageId {
+public int MessageId {
     set;
     get;
 } = 0;
-public Document(string name, string parent, long mesId){
+public Document(string name, string parent, int mesId){
     if(name!=null)
     {
         this.Name = name;

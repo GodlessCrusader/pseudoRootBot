@@ -1,13 +1,16 @@
 
 
+using Telegram.Bot;
 
 class MkdirCommand : Command
 {
-    public MkdirCommand()
+    public MkdirCommand(TelegramBotClient botClient, CancellationToken ct)
     {
         this.Name = "mkdir";
+        this.BotClient = botClient;
+        this.CancellationToken = ct;
     }
-    public override string Handle(string cmdLn, FilePath pwd, string fileName)
+    public override string Handle(string cmdLn, FilePath pwd, string fileName, long chatId)
     {
         var args = cmdLn.Split(" ").ToList();
         if(args.Capacity>1)
