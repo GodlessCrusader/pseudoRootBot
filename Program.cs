@@ -6,10 +6,9 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Newtonsoft.Json;
 using System.IO;
-// using static Command;
-// using static FilePath;
 
-FilePath pwd = new FilePath();
+List<Session> activeSessions = new List<Session>();
+
 
 var botClient = new TelegramBotClient("5106073089:AAFUWHZLl7BN0qedxn41BRyVFPoIMjz9KB4");
 
@@ -25,26 +24,13 @@ List<Command> commandList = new List<Command>()
     new LsCommand(botClient, cts.Token)
 };
 
-foreach(Command c in commandList)
-{
-    Console.WriteLine($"Name : {c.Name}");
-}
-
 List<long> chats = new List<long>();
-
-
 
 var receiverOptions = new ReceiverOptions { // receives all the shit you send
     AllowedUpdates = { }
 };
 
-//  using (StreamReader sr = System.IO.File.OpenText("testFS.Json"))
-//         {
-//             fileTree = sr.ReadToEnd();
-//         }
-
-
-botClient.StartReceiving(
+botClient.StartReceiving(                                                                                   // Client initialize 
     HandleUpdateAsync,
     HandleErrorAsync,
     receiverOptions,
@@ -60,66 +46,76 @@ Console.ReadLine();
 
 
 
-async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)      //On update
 {
-    // Only process Message updates: https://core.telegram.org/bots/api#message
     if (update.Type != UpdateType.Message)
         return;
-    if(update.Message.Type == MessageType.Document)
+    var messageText = update.Message.Text;
+    
+    Session currentSession;
+    if(activeSessions.Exists(x => x.ChatId == update.Message.Chat.Id))
+    {
+        currentSession = activeSessions.Find(x => x.ChatId == update.Message.Chat.Id);
+    }
+    else
+    {
+        if(messageText == @"/start")
+        { 
+            currentSession = Session.Start(botClient, update.Message.Chat.Id);
+            activeSessions.Add(currentSession); 
+        }
+        else
+        {
+            botClient.SendTextMessageAsync(update.Message.Chat.Id, "Please clear message history and use /start for proper registration");
+            return;
+        }   
+    }
+    var fileName = currentSession.FileSystemDoc.FileId;
+
+    if(update.Message.Type == MessageType.Document)                                  //Drag'n'drop
     {
         var mesId = update.Message.MessageId;
         var documentName = update.Message.Document.FileName;
-        CreateCommand.Handle(pwd, "testFS.json", documentName, mesId);
+        CreateCommand.Handle(currentSession.Pwd, fileName, documentName, mesId);
         return;
     }
-
-    var chatId = update.Message.Chat.Id;
-    var messageText = update.Message.Text;
-    Console.WriteLine(messageText);
-        if (!chats.Exists(y => y == chatId))
-    {
-        chats.Add(chatId);
-    }
-
+    
     List<string> cmdLn = messageText!.Split(" ").ToList<string>();
-    Console.WriteLine("cmdLn:");
-    Console.WriteLine($" 0 element: {cmdLn[0]}");
+    
     foreach(string s in cmdLn)
     {
         Console.WriteLine(s);
     }
-    if(commandList.Exists(x => x.Name == cmdLn[0]))
+    
+    if(commandList.Exists(x => x.Name == cmdLn[0]))                                                                      // Executes Command 
     {
         try
         {
-            string? mess = commandList.Find(x => x.Name == cmdLn[0])!.Handle(messageText, pwd, "testFS.json", chatId);
+            string? mess = commandList.Find(x => x.Name == cmdLn[0])!.Handle(messageText, currentSession.Pwd, fileName, currentSession.ChatId);
+            
             if(mess!=null)
             {
                 await botClient.SendTextMessageAsync(
-                chatId: chatId,
+                chatId: currentSession.ChatId,
                 text: mess ,
                 cancellationToken: cancellationToken);
             }
         }
+        
         catch(Exception ex)
         {
         await botClient.SendTextMessageAsync(
-        chatId: chatId,
+        chatId: currentSession.ChatId,
         text: ex.ToString() ,
-        cancellationToken: cancellationToken);
-  
+        cancellationToken: cancellationToken); 
         }
     }
-      // returns Command with corresponding name
 
-
-    ShowChats();
-
-    // Echo 
-    Message sentMessage = await botClient.SendTextMessageAsync(
-        chatId: chatId,
-        text: pwd.GetString() ,
+    Message sentMessage = await botClient.SendTextMessageAsync(                                                             // Echo the present working directory
+        chatId: currentSession.ChatId,
+        text: currentSession.Pwd.GetString() ,
         cancellationToken: cancellationToken);
+    
 }
 
 
@@ -139,10 +135,10 @@ Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, Cancell
     return Task.CompletedTask;
 }
 
-void ShowChats(){
-    int i = 1;
-    foreach (long id in chats) {
-        Console.WriteLine($"id {i++} : {id}");
-    }
-    Console.WriteLine();
-}
+// void ShowChats(){
+//     int i = 1;
+//     foreach (long id in chats) {
+//         Console.WriteLine($"id {i++} : {id}");
+//     }
+//     Console.WriteLine();
+// }
