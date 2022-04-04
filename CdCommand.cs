@@ -66,7 +66,7 @@ class CdCommand : Command
                     current = null;
                     
                 }
-                Console.WriteLine($"Current var: {current.Name}");
+               
                 if(current!=null)
                 {
                     foreach(string s in cdPath)

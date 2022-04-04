@@ -3,7 +3,14 @@ using Telegram.Bot.Types;
 
 class Session 
 {
-    private int timer = 5000;
+    public string FileId;
+    private DateTime closureTime;
+    public DateTime ClosureTime
+    {
+        get{
+            return closureTime;
+        }
+    }
     private long chatId;
     public long ChatId
     {
@@ -12,8 +19,8 @@ class Session
         }
     }
     private ITelegramBotClient botClient;
-    private Telegram.Bot.Types.File fileSystemDoc;
-    public Telegram.Bot.Types.File FileSystemDoc
+    private Telegram.Bot.Types.File? fileSystemDoc;
+    public Telegram.Bot.Types.File? FileSystemDoc
     {
         get{
             return fileSystemDoc;
@@ -35,67 +42,78 @@ class Session
         }
     }
 
-    bool activityFlag = false;
-    public bool ActivityFlag
-    {
-        get{
-            return activityFlag;
-        }
-    }
-
-    private bool status = false;
-
     private Session(ITelegramBotClient botClient, long chatId)
     {
-        status = true;
+        startFlag = true;
         this.chatId = chatId;
         this.botClient = botClient;
-        fileSystemDoc = botClient.GetFileAsync($"{chatId.ToString()}.json").Result;
+        closureTime = DateTime.Now.AddMinutes(2);
+        try
+        {
+            fileSystemDoc = botClient.GetFileAsync(botClient.GetChatAsync(chatId).Result.PinnedMessage.Document.FileId).Result;    
+        }
+        catch
+        {
+            fileSystemDoc = null;
+        }
     }
 
     public static Session Start(ITelegramBotClient botClient, long chatId)
     {
         var ses = new Session(botClient, chatId);
-
+        ses.ResetTimeout(5);
+        if(ses.fileSystemDoc == null)
+            {
+                ses.RegisterNewUser();
+            }
+        else
+            ses.Open();
         return ses;
     }
     
-    private void Open()
+    private async void Open()
     {
-        using(FileStream transfer = System.IO.File.Create($"{chatId.ToString()}.json"))
+        CancellationTokenSource cts = new CancellationTokenSource();
+        using(FileStream transfer = System.IO.File.Open($"{chatId.ToString()}.json", FileMode.Create))
         {
-            botClient.DownloadFileAsync(fileSystemDoc.FilePath, transfer);
+            await botClient.DownloadFileAsync(fileSystemDoc.FilePath,transfer,cts.Token);
         }
         
     }
 
     public void Close()
     {
-        status = false;
-        using(FileStream transfer = System.IO.File.Open($"{chatId.ToString()}.json", FileMode.Open))
-        {
-            botClient.EditMessageMediaAsync(
+        startFlag = false;
+            using(FileStream transfer = System.IO.File.Open($"{chatId.ToString()}.json", FileMode.Open))
+            {
+            Message m = botClient.EditMessageMediaAsync(
                 chatId: chatId,
-                messageId: 2,
-                media: new InputMediaDocument(new InputMedia(transfer, $"{chatId.ToString()}.json")));
-        }
+                messageId: botClient.GetChatAsync(chatId).Result.PinnedMessage.MessageId,
+                media: new InputMediaDocument(new InputMedia(transfer, $"{chatId.ToString()}.json"))).Result;
+            }
+            System.IO.File.Delete($"{chatId.ToString()}.json");
+            Message s = botClient.SendTextMessageAsync(chatId,"Session is over. Write anything to start using pseudoroot").Result;
+
     }
 
     private void RegisterNewUser()
     {
-        startFlag = true;
         using(StreamWriter fs = new StreamWriter($"{chatId.ToString()}.json"))
         {
-            fs.Write(Newtonsoft.Json.JsonConvert.SerializeObject(new Directory("rom",null)));
-            FileStream transfer = System.IO.File.Open($"{chatId.ToString()}.json", FileMode.OpenOrCreate);
-            botClient.SendDocumentAsync(chatId, new Telegram.Bot.Types.InputFiles.InputOnlineFile(transfer));
-            botClient.SendTextMessageAsync(chatId,"Complete");
+            fs.Write(Newtonsoft.Json.JsonConvert.SerializeObject(new Directory("rom",null)));  
+        }
+        Message m = new Message();
+        using(FileStream transfer = System.IO.File.Open($"{chatId.ToString()}.json", FileMode.OpenOrCreate))
+        {
+            m = botClient.SendDocumentAsync(chatId, new Telegram.Bot.Types.InputFiles.InputOnlineFile(transfer),null,$"{chatId.ToString()}.json").Result;
+            botClient.PinChatMessageAsync(chatId,m.MessageId);
+            fileSystemDoc = botClient.GetFileAsync(m.Document.FileId).Result;
         }
     }
 
     public void ResetTimeout(int time)
     {
-        
+        closureTime = DateTime.Now.AddMinutes(5);
     }
 
    

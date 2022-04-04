@@ -36,70 +36,102 @@ botClient.StartReceiving(                                                       
     receiverOptions,
     cancellationToken: cts.Token
 );
-
-
+// botClient.UnpinAllChatMessages(480568360);
 var me = await botClient.GetMeAsync();
 Console.WriteLine($"Hello, World! I am user {me.Id} and my name is {me.FirstName}.");
 Console.ReadLine();
-
-
+TimeoutCheck(activeSessions);
 
 
 
 async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)      //On update
 {
-    if (update.Type != UpdateType.Message)
-        return;
-    var messageText = update.Message.Text;
     
-    Session currentSession;
     if(activeSessions.Exists(x => x.ChatId == update.Message.Chat.Id))
     {
-        currentSession = activeSessions.Find(x => x.ChatId == update.Message.Chat.Id);
+        Console.WriteLine("Entered Reset check");
+        activeSessions.Find(x => x.ChatId == update.Message.Chat.Id).ResetTimeout(5);
+    }
+    if (update.Type != UpdateType.Message)
+        return;
+    
+    Session currentSession;
+    
+    if(activeSessions.Exists(x => x.ChatId == update.Message.Chat.Id))
+    {
+        currentSession = activeSessions.Find(x => x.ChatId == update.Message.Chat.Id); 
     }
     else
     {
-        if(messageText == @"/start")
-        { 
-            currentSession = Session.Start(botClient, update.Message.Chat.Id);
-            activeSessions.Add(currentSession); 
-        }
-        else
+        try
         {
-            botClient.SendTextMessageAsync(update.Message.Chat.Id, "Please clear message history and use /start for proper registration");
+            currentSession = Session.Start(botClient, update.Message.Chat.Id);
+            activeSessions.Add(currentSession);
+        }
+        catch(Exception e)
+        {
+            botClient.SendTextMessageAsync(update.Message.Chat.Id, e.ToString());
             return;
-        }   
+        }
     }
-    var fileName = currentSession.FileSystemDoc.FileId;
 
-    if(update.Message.Type == MessageType.Document)                                  //Drag'n'drop
+    
+
+    var fileName = $"{currentSession.ChatId.ToString()}.json";
+
+    List<MessageType> allowedTypes = new List<MessageType>()
+    {
+        MessageType.Photo,
+        MessageType.Video,
+        MessageType.Audio,
+        MessageType.Contact,
+        MessageType.Document,
+        MessageType.Location,
+        MessageType.Voice,
+        MessageType.VideoNote,
+        MessageType.SuccessfulPayment
+    };
+    if(allowedTypes.Exists(x => x == update.Message.Type))                                  //Drag'n'drop
     {
         var mesId = update.Message.MessageId;
-        var documentName = update.Message.Document.FileName;
-        CreateCommand.Handle(currentSession.Pwd, fileName, documentName, mesId);
+        string? documentName = null;
+        if(update.Message.Document != null)
+            documentName = update.Message.Document.FileName;
+        await Task.Run(() => 
+        CreateCommand.Handle(currentSession.Pwd, fileName, documentName, mesId));
+        await botClient.SendTextMessageAsync(                                                             // Echo the present working directory
+        chatId: currentSession.ChatId,
+        text: currentSession.Pwd.GetString() ,
+        cancellationToken: cancellationToken);
         return;
     }
+    if(update.Message.Text == null)
+        return;
     
-    List<string> cmdLn = messageText!.Split(" ").ToList<string>();
+    List<string> cmdLn = update.Message.Text!.Split(" ").ToList<string>();
     
-    foreach(string s in cmdLn)
+
+    if(cmdLn[0] == "close")
     {
-        Console.WriteLine(s);
+        currentSession.Close();
+        activeSessions.Remove(currentSession);
+        // botClient.SendTextMessageAsync(update.Message.Chat.Id,"Session is over. Write anything to start using pseudoroot");
+        return;    
     }
-    
     if(commandList.Exists(x => x.Name == cmdLn[0]))                                                                      // Executes Command 
     {
         try
         {
-            string? mess = commandList.Find(x => x.Name == cmdLn[0])!.Handle(messageText, currentSession.Pwd, fileName, currentSession.ChatId);
+            // string? mess = 
+            commandList.Find(x => x.Name == cmdLn[0])!.Handle(update.Message.Text, currentSession.Pwd, fileName, currentSession.ChatId);
             
-            if(mess!=null)
-            {
-                await botClient.SendTextMessageAsync(
-                chatId: currentSession.ChatId,
-                text: mess ,
-                cancellationToken: cancellationToken);
-            }
+            // if(mess!=null)
+            // {
+            //     await botClient.SendTextMessageAsync(
+            //     chatId: currentSession.ChatId,
+            //     text: mess ,
+            //     cancellationToken: cancellationToken);
+            // }
         }
         
         catch(Exception ex)
@@ -110,8 +142,10 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
         cancellationToken: cancellationToken); 
         }
     }
+    var timeoutCheckTask = new Task(() => TimeoutCheck(activeSessions));
+    timeoutCheckTask.Start();
 
-    Message sentMessage = await botClient.SendTextMessageAsync(                                                             // Echo the present working directory
+    await botClient.SendTextMessageAsync(                                                             // Echo the present working directory
         chatId: currentSession.ChatId,
         text: currentSession.Pwd.GetString() ,
         cancellationToken: cancellationToken);
@@ -135,6 +169,25 @@ Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, Cancell
     return Task.CompletedTask;
 }
 
+void TimeoutCheck(List<Session> aS)
+{
+    while(aS.Count > 0)
+    {
+        Console.WriteLine(DateTime.Now - aS[0].ClosureTime);
+        if(aS.Exists(x => x.ClosureTime < DateTime.Now))
+        {
+            
+            
+            foreach(Session s in aS.FindAll(x => x.ClosureTime < DateTime.Now))
+               {
+                   Console.WriteLine("Closed");
+                   s.Close();
+                   
+               }
+            aS.RemoveAll(x => x.ClosureTime < DateTime.Now);
+        }
+    }
+}
 // void ShowChats(){
 //     int i = 1;
 //     foreach (long id in chats) {

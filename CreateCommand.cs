@@ -13,7 +13,7 @@ class CreateCommand : Command
         throw new NotImplementedException();
     }
 
-    public static string Handle(FilePath pwd, string fileJsonName, string documentName, int mesId)
+    public static void Handle(FilePath pwd, string fileJsonName, string? documentName, int mesId)
     {
         string jsonRepresent = "";
         
@@ -27,7 +27,5 @@ class CreateCommand : Command
 
         using(StreamWriter sw = new StreamWriter(fileJsonName))
             sw.Write(jsonRepresent);
-        
-        return null;
     }
 }   

@@ -23,7 +23,8 @@ class TreeCommand : Command {
 
         if(rootDir != null)
         {
-           return DrawFileTree(rootDir,tree, 0, new List<int>()).ToString();
+            SendMessage(chatId, DrawFileTree(rootDir,tree, 0, new List<int>()).ToString());
+            return DrawFileTree(rootDir,tree, 0, new List<int>()).ToString();
         }
         
         return tree.ToString();
