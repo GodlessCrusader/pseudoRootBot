@@ -7,16 +7,26 @@ public int MessageId {
     set;
     get;
 } = 0;
-public Document(string name, string parent, int mesId){
+public Document(string name, Directory parent, int mesId){
     if(name!=null)
     {
         this.Name = name;
     }
     else
     {
-        this.Name = "new document";
+        if(!parent.DocContents.Exists(x => x.Name == "new document"))
+            this.Name = "new document";
+        else
+        {
+            int i = 1;
+            string nm = "new document";
+            while(parent.DocContents.Exists(x => x.Name == nm))
+            {
+                nm = $"new document ({i++})";
+            }
+        }
     }
-    this.ParentDir = parent;
+    this.ParentDir = parent.Name;
     this.MessageId= mesId;
 }
 }

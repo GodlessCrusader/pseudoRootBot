@@ -61,7 +61,7 @@ class Session
     public static Session Start(ITelegramBotClient botClient, long chatId)
     {
         var ses = new Session(botClient, chatId);
-        ses.ResetTimeout(5);
+        ses.ResetTimeout(1);
         if(ses.fileSystemDoc == null)
             {
                 ses.RegisterNewUser();
@@ -113,7 +113,7 @@ class Session
 
     public void ResetTimeout(int time)
     {
-        closureTime = DateTime.Now.AddMinutes(5);
+        closureTime = DateTime.Now.AddMinutes(1);
     }
 
    

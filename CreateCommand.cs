@@ -22,7 +22,14 @@ class CreateCommand : Command
         
         Directory rootDir = Newtonsoft.Json.JsonConvert.DeserializeObject<Directory>(jsonRepresent);
         Directory current = Directory.GetDirectory(pwd, rootDir);
-        current.DocContents.Add(new Document(documentName, current.Name, mesId));
+        if(current.DocContents.Exists(x => x.Name == documentName))
+        {
+
+        }
+        else
+        {
+            current.DocContents.Add(new Document(documentName, current, mesId));
+        }
         jsonRepresent = Newtonsoft.Json.JsonConvert.SerializeObject(rootDir);
 
         using(StreamWriter sw = new StreamWriter(fileJsonName))

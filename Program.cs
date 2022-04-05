@@ -9,6 +9,7 @@ using System.IO;
 
 List<Session> activeSessions = new List<Session>();
 
+var timeoutCheckThread = new Thread(() => TimeoutCheck(activeSessions));
 
 var botClient = new TelegramBotClient("5106073089:AAFUWHZLl7BN0qedxn41BRyVFPoIMjz9KB4");
 
@@ -40,8 +41,6 @@ botClient.StartReceiving(                                                       
 var me = await botClient.GetMeAsync();
 Console.WriteLine($"Hello, World! I am user {me.Id} and my name is {me.FirstName}.");
 Console.ReadLine();
-TimeoutCheck(activeSessions);
-
 
 
 async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)      //On update
@@ -50,7 +49,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
     if(activeSessions.Exists(x => x.ChatId == update.Message.Chat.Id))
     {
         Console.WriteLine("Entered Reset check");
-        activeSessions.Find(x => x.ChatId == update.Message.Chat.Id).ResetTimeout(5);
+        activeSessions.Find(x => x.ChatId == update.Message.Chat.Id).ResetTimeout(1);
     }
     if (update.Type != UpdateType.Message)
         return;
@@ -142,8 +141,11 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
         cancellationToken: cancellationToken); 
         }
     }
-    var timeoutCheckTask = new Task(() => TimeoutCheck(activeSessions));
-    timeoutCheckTask.Start();
+    if(!timeoutCheckThread.IsAlive) 
+    {
+        timeoutCheckThread = new Thread(() => TimeoutCheck(activeSessions));
+        timeoutCheckThread.Start();
+    }
 
     await botClient.SendTextMessageAsync(                                                             // Echo the present working directory
         chatId: currentSession.ChatId,
@@ -179,11 +181,10 @@ void TimeoutCheck(List<Session> aS)
             
             
             foreach(Session s in aS.FindAll(x => x.ClosureTime < DateTime.Now))
-               {
-                   Console.WriteLine("Closed");
-                   s.Close();
-                   
-               }
+            {
+                Console.WriteLine("Closed");
+                s.Close();
+            }
             aS.RemoveAll(x => x.ClosureTime < DateTime.Now);
         }
     }
