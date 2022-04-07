@@ -33,7 +33,7 @@ abstract class Command
     }
     
 
-    public abstract string Handle(string cmdLn, FilePath pwd, string fileName, long chatId);
+    public abstract string Handle(string cmdLn, Session session);
 
     public void SendMessage(long chatId, string text)
     {

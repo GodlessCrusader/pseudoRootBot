@@ -10,16 +10,16 @@ class CdCommand : Command
         this.CancellationToken = ct;
     }
 
-    public override string Handle(string cmdLn, FilePath pwd, string fileName, long chatId)
+    public override string Handle(string cmdLn, Session session)
     {
         List<string> args = cmdLn.Split(" ").ToList();
         if(args.Count > 1)
         {
             if(args[1] == "..")
             {
-                if(pwd.directories.Count>0)
+                if(session.Pwd.directories.Count>0)
                 {
-                    pwd.directories.RemoveAt(pwd.directories.Count-1);
+                    session.Pwd.directories.RemoveAt(session.Pwd.directories.Count-1);
                 }
                 else
                 {
@@ -35,30 +35,18 @@ class CdCommand : Command
                     s.Replace(" ", "");
                 }
 
-                Directory? rootDir;
-
-                using(StreamReader sr = new StreamReader(fileName))
-                {
-                    rootDir = Newtonsoft.Json.JsonConvert.DeserializeObject<Directory>(sr.ReadToEnd());
-                }
 
                 Directory? current;
 
-                if(rootDir!=null)
+                if(session.RootDir!=null)
                 {
-                    Console.WriteLine("Entered rootDir not null check");
-                    if(pwd.directories.Count>=1)
+                    if(session.Pwd.directories.Count>=1)
                     {
-                        Console.WriteLine("Entered pwd count >=1 check");
-                        current = Directory.GetDirectory(pwd, rootDir);
-                        Console.WriteLine($"current after gd {current==null}");
+                        current = Directory.GetDirectory(session.Pwd, session.RootDir);
                     }
                     else
                     {
-                        Console.WriteLine("Entered pwd count <=1 check");
-                        Console.WriteLine("Entered pwd count <1 check");
-                        current = rootDir;
-                        
+                        current = session.RootDir;   
                     }
                 }
                 else
@@ -88,7 +76,7 @@ class CdCommand : Command
                     }
                     if(current.Name == cdPath[cdPath.Count-1])
                     {
-                        pwd.directories = pwd.directories.Concat(cdPath).ToList();
+                        session.Pwd.directories = session.Pwd.directories.Concat(cdPath).ToList();
                     }
                 }
                 else

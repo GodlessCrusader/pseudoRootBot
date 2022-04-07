@@ -10,7 +10,7 @@ class MkdirCommand : Command
         this.BotClient = botClient;
         this.CancellationToken = ct;
     }
-    public override string Handle(string cmdLn, FilePath pwd, string fileName, long chatId)
+    public override string Handle(string cmdLn, Session session)
     {
         var args = cmdLn.Split(" ").ToList();
         if(args.Capacity>1)
@@ -22,23 +22,17 @@ class MkdirCommand : Command
             }
             else
             {
-                string jsonRepresent = "";
-                using(StreamReader str = new StreamReader(fileName))
-                {
-                    jsonRepresent = str.ReadToEnd();
-                }
-                Directory? rootDir = Newtonsoft.Json.JsonConvert.DeserializeObject<Directory>(jsonRepresent);
                 Directory? current = null;
-                if(rootDir!=null)
+                if(session.RootDir!=null)
                 {
-                    if(pwd.directories.Count>=1)
+                    if(session.Pwd.directories.Count>=1)
                     {
                         //bugged need a way to define directory correctly
-                        current = Directory.GetDirectory(pwd, rootDir);
+                        current = Directory.GetDirectory(session.Pwd, session.RootDir);
                     }
-                    if(pwd.directories.Count == 0)
+                    if(session.Pwd.directories.Count == 0)
                     {
-                        current = rootDir;
+                        current = session.RootDir;
                     }
                 }
                 if(current!=null)
@@ -51,22 +45,7 @@ class MkdirCommand : Command
                     else
                     {
                         current.ChildDirectories.Add(new Directory(args[1], current));
-                        jsonRepresent = Newtonsoft.Json.JsonConvert.SerializeObject(rootDir);
-                        using(StreamWriter sw = new StreamWriter(fileName))
-                        {
-                            sw.Write(jsonRepresent);
-                        }
                     }                        
-                }
-                else
-                {
-                    rootDir = new Directory("rom", null);
-                    rootDir.ChildDirectories.Add(new Directory(args[1], rootDir));
-                        jsonRepresent = Newtonsoft.Json.JsonConvert.SerializeObject(rootDir);
-                        using(StreamWriter sw = new StreamWriter(fileName))
-                        {
-                            sw.Write(jsonRepresent);
-                        }
                 }
             }   
         }

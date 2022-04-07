@@ -7,7 +7,7 @@ class CloseCommand : Command
         this.BotClient = botClient;
         this.CancellationToken = ct;
     }
-    public override string Handle(string cmdLn, FilePath pwd, string fileName, long chatId)
+    public override string Handle(string cmdLn, Session session)
     {
         throw new NotImplementedException();
     }

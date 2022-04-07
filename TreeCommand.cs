@@ -10,21 +10,14 @@ class TreeCommand : Command {
         this.BotClient = botClient;
         this.CancellationToken = cts;
     }
-    public override string Handle(string cmdLn, FilePath pwd, string fileName, long chatId)
+    public override string Handle(string cmdLn,Session session)
     {
         StringBuilder tree = new StringBuilder();
 
-        Directory? rootDir = null;
-
-        using(StreamReader sr = new StreamReader(fileName))
+        if(session.RootDir != null)
         {
-            rootDir=Newtonsoft.Json.JsonConvert.DeserializeObject<Directory>(sr.ReadToEnd());
-        }
-
-        if(rootDir != null)
-        {
-            SendMessage(chatId, DrawFileTree(rootDir,tree, 0, new List<int>()).ToString());
-            return DrawFileTree(rootDir,tree, 0, new List<int>()).ToString();
+            SendMessage(session.ChatId, DrawFileTree(session.RootDir,tree, 0, new List<int>()).ToString());
+            return DrawFileTree(session.RootDir,tree, 0, new List<int>()).ToString();
         }
         
         return tree.ToString();

@@ -65,7 +65,9 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
         try
         {
             currentSession = Session.Start(botClient, update.Message.Chat.Id);
+            Console.WriteLine("Started session");
             activeSessions.Add(currentSession);
+            Console.WriteLine("added to active sessions");
         }
         catch(Exception e)
         {
@@ -73,7 +75,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
             return;
         }
     }
-
+    Console.WriteLine($"Current session rootdir name:{currentSession.RootDir == null}");
     
 
     var fileName = $"{currentSession.ChatId.ToString()}.json";
@@ -114,15 +116,17 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
     {
         currentSession.Close();
         activeSessions.Remove(currentSession);
-        // botClient.SendTextMessageAsync(update.Message.Chat.Id,"Session is over. Write anything to start using pseudoroot");
+        botClient.SendTextMessageAsync(update.Message.Chat.Id,"Session is over. Write anything to start using pseudoroot");
         return;    
     }
+
+
     if(commandList.Exists(x => x.Name == cmdLn[0]))                                                                      // Executes Command 
     {
         try
         {
             // string? mess = 
-            commandList.Find(x => x.Name == cmdLn[0])!.Handle(update.Message.Text, currentSession.Pwd, fileName, currentSession.ChatId);
+            commandList.Find(x => x.Name == cmdLn[0])!.Handle(update.Message.Text, currentSession);
             
             // if(mess!=null)
             // {
@@ -171,15 +175,15 @@ Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, Cancell
     return Task.CompletedTask;
 }
 
-void TimeoutCheck(List<Session> aS)
+void TimeoutCheck(List<Session> aS) //Thread secure rewrite
 {
     while(aS.Count > 0)
     {
-        Console.WriteLine(DateTime.Now - aS[0].ClosureTime);
+        // Console.WriteLine(DateTime.Now - aS[0].ClosureTime);
         if(aS.Exists(x => x.ClosureTime < DateTime.Now))
         {
             
-            
+
             foreach(Session s in aS.FindAll(x => x.ClosureTime < DateTime.Now))
             {
                 Console.WriteLine("Closed");

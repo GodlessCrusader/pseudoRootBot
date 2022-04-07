@@ -8,27 +8,21 @@ class DeleteCommand : Command {
         this.BotClient = botClient;
         this.CancellationToken = ct;
     }
-    public override string Handle(string cmdLn, FilePath pwd, string fileName, long chatId)
+    public override string Handle(string cmdLn, Session session)
     {
         var args = cmdLn.Split(" ").ToList();
-        if(args.Capacity>1)
+        if(args.Count>1)
         {
-            string jsonRepresent = "";
-            using(StreamReader str = new StreamReader(fileName))
-            {
-                jsonRepresent = str.ReadToEnd();
-            }
-            Directory? rootDir = Newtonsoft.Json.JsonConvert.DeserializeObject<Directory>(jsonRepresent);
             Directory? current = null;
-            if(rootDir!=null)
+            if(session.RootDir!=null)
             {
-                if(pwd.directories.Count>1)
+                if(session.Pwd.directories.Count>1)
                 {
-                    current = Directory.GetDirectory(pwd, rootDir);
+                    current = Directory.GetDirectory(session.Pwd, session.RootDir);
                 }
-                if(pwd.directories.Count == 0)
+                if(session.Pwd.directories.Count == 0)
                 {
-                    current = rootDir;
+                    current = session.RootDir;
                 }
             }
             if(current!=null)
@@ -37,11 +31,6 @@ class DeleteCommand : Command {
                 if(current!.CheckExistance(args[1]))
                 {
                     current.ChildDirectories.Remove(current.ChildDirectories.Find(x => x.Name == args[1])!);
-                    jsonRepresent = Newtonsoft.Json.JsonConvert.SerializeObject(rootDir);
-                    using(StreamWriter sw = new StreamWriter(fileName))
-                    {
-                        sw.Write(jsonRepresent);
-                    }
                 }
                 else
                 {
@@ -52,13 +41,6 @@ class DeleteCommand : Command {
             else
             {
                 throw new Exception($"Directory {args[1]} doesn't exists");
-                // rootDir = new Directory("rom", null);
-                // rootDir.ChildDirectories.Add(new Directory(args[1], rootDir));
-                //     jsonRepresent = Newtonsoft.Json.JsonConvert.SerializeObject(rootDir);
-                //     using(StreamWriter sw = new StreamWriter(fileName))
-                //     {
-                //         sw.Write(jsonRepresent);
-                //     }
             }
             
         }

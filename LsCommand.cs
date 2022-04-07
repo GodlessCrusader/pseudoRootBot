@@ -8,23 +8,19 @@ class LsCommand : Command
         this.BotClient = botClient;
         this.CancellationToken = ct;
     }
-    public override string Handle(string cmdLn, FilePath pwd, string fileName, long chatId)
+    public override string Handle(string cmdLn, Session session)
     {
-        string jsonRepresent = "";
-        using(StreamReader sr = new StreamReader(fileName))
-            jsonRepresent = sr.ReadToEnd();
-        Directory rootDir = Newtonsoft.Json.JsonConvert.DeserializeObject<Directory>(jsonRepresent);
-        Directory current = Directory.GetDirectory(pwd, rootDir);
+        Directory current = Directory.GetDirectory(session.Pwd, session.RootDir);
         StringBuilder stringBuilder = new StringBuilder();
         foreach(Directory d in current.ChildDirectories)
             stringBuilder.AppendLine($"|__{d.Name}");
         SendMessage(
-            chatId,
+            session.ChatId,
             stringBuilder.ToString()
         );
         foreach(Document d in current.DocContents)
             ForwardFile(
-                chatId,
+                session.ChatId,
                 d
             );
         return null;
