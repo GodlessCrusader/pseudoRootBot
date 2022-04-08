@@ -15,12 +15,12 @@ class LsCommand : Command
         foreach(Directory d in current.ChildDirectories)
             stringBuilder.AppendLine($"|__{d.Name}");
         SendMessage(
-            session.ChatId,
+            session,
             stringBuilder.ToString()
         );
         foreach(Document d in current.DocContents)
             ForwardFile(
-                session.ChatId,
+                session,
                 d
             );
         return null;

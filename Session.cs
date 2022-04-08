@@ -1,15 +1,25 @@
 using Telegram.Bot;
 using Telegram.Bot.Types;
-
+using Telegram.Bot.Types.ReplyMarkups;
 class Session 
 {
-    private Directory rootDir;
-    public Directory RootDir{
+    private UserPreferences userPreferences;
+    public CommandMode PreferedMode
+    {
         set{
-            value = rootDir;
+            userPreferences.PreferedMode = value;
         }
+
         get{
-            return rootDir;
+            return userPreferences.PreferedMode;
+        }
+    }
+    public Directory RootDir{
+        get{
+            return userPreferences.RootDir;
+        }
+        set{
+            userPreferences.RootDir = value;
         }
     }
     public string FileId;
@@ -37,6 +47,29 @@ class Session
     }
     private FilePath pwd = new FilePath();
 
+    private ReplyKeyboardMarkup replyKeyboardMarkup = new(new []
+    {
+        new KeyboardButton[] { "One", "Two" },
+        new KeyboardButton[] { "Three", "Four" },
+        new KeyboardButton[] {new KeyboardButton("sas")}
+    })
+    {
+        ResizeKeyboard = true
+    };
+
+
+    public ReplyKeyboardMarkup Keyboard
+    {
+        set{
+            replyKeyboardMarkup = value;
+        }
+
+        get
+        {
+            return replyKeyboardMarkup;
+        }
+
+    }
     public FilePath Pwd
     {
         get{
@@ -94,8 +127,8 @@ class Session
         {
             string jr = sr.ReadToEnd();
             Console.WriteLine($"Json Representation:{jr}");
-            rootDir = Newtonsoft.Json.JsonConvert.DeserializeObject<Directory>(jr);
-            Console.WriteLine($"RootDir.ToString() {rootDir == null}");
+            RootDir = Newtonsoft.Json.JsonConvert.DeserializeObject<Directory>(jr);
+            Console.WriteLine($"RootDir.ToString() {RootDir == null}");
            
         }
         System.IO.File.Delete($"{chatId.ToString()}.json");
@@ -106,7 +139,7 @@ class Session
     {
         // System.IO.File.Create($"{chatId.ToString()}.json");
         StreamWriter sw = new StreamWriter(($"{chatId.ToString()}.json"));
-        string jr = Newtonsoft.Json.JsonConvert.SerializeObject(rootDir);
+        string jr = Newtonsoft.Json.JsonConvert.SerializeObject(RootDir);
         sw.Write(jr);
         sw.Dispose();
         FileStream fileStream = new FileStream($"{chatId.ToString()}.json",FileMode.Open);
@@ -129,8 +162,8 @@ class Session
         {
             fs.Write(Newtonsoft.Json.JsonConvert.SerializeObject(new Directory("rom",null)));  
         }
-        rootDir = new Directory("rom", null);
-        Console.WriteLine($"{rootDir == null}");
+        RootDir = new Directory("rom", null);
+        Console.WriteLine($"{RootDir == null}");
         Message m = new Message();
         using(FileStream transfer = System.IO.File.Open($"{chatId.ToString()}.json", FileMode.OpenOrCreate))
         {

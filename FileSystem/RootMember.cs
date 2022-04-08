@@ -1,5 +1,6 @@
-abstract class RootMember {
-    public Directory? parentDir;
+class RootMember {
+    public string parentDir
+    {set; get;} = "";
     public string Name {
         set;
         get;

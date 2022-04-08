@@ -16,7 +16,7 @@ class TreeCommand : Command {
 
         if(session.RootDir != null)
         {
-            SendMessage(session.ChatId, DrawFileTree(session.RootDir,tree, 0, new List<int>()).ToString());
+            SendMessage(session, DrawFileTree(session.RootDir,tree, 0, new List<int>()).ToString());
             return DrawFileTree(session.RootDir,tree, 0, new List<int>()).ToString();
         }
         

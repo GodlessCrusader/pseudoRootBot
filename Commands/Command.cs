@@ -35,20 +35,21 @@ abstract class Command
 
     public abstract string Handle(string cmdLn, Session session);
 
-    public void SendMessage(long chatId, string text)
+    public void SendMessage(Session session, string text)
     {
         this.BotClient.SendTextMessageAsync(
-            chatId: chatId,
+            chatId: session.ChatId,
             text: text,
-            cancellationToken: this.CancellationToken
+            cancellationToken: this.CancellationToken,
+            replyMarkup: session.Keyboard
         );
     }
 
-    public void ForwardFile(long chatId, Document doc)
+    public void ForwardFile(Session session, Document doc)
     {
          this.BotClient.ForwardMessageAsync(
-            chatId: chatId,
-            fromChatId: chatId,
+            chatId: session.ChatId,
+            fromChatId: session.ChatId,
             messageId: doc.MessageId,
             cancellationToken: this.CancellationToken
         );

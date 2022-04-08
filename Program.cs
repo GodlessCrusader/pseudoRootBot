@@ -102,7 +102,8 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
         CreateCommand.Handle(currentSession.Pwd, fileName, documentName, mesId));
         await botClient.SendTextMessageAsync(                                                             // Echo the present working directory
         chatId: currentSession.ChatId,
-        text: currentSession.Pwd.GetString() ,
+        text: currentSession.Pwd.GetString(),
+        replyMarkup: currentSession.Keyboard,
         cancellationToken: cancellationToken);
         return;
     }
@@ -116,7 +117,6 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
     {
         currentSession.Close();
         activeSessions.Remove(currentSession);
-        botClient.SendTextMessageAsync(update.Message.Chat.Id,"Session is over. Write anything to start using pseudoroot");
         return;    
     }
 
@@ -153,7 +153,8 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
 
     await botClient.SendTextMessageAsync(                                                             // Echo the present working directory
         chatId: currentSession.ChatId,
-        text: currentSession.Pwd.GetString() ,
+        text: currentSession.Pwd.GetString(),
+        replyMarkup: currentSession.Keyboard,
         cancellationToken: cancellationToken);
     
 }
@@ -182,8 +183,6 @@ void TimeoutCheck(List<Session> aS) //Thread secure rewrite
         // Console.WriteLine(DateTime.Now - aS[0].ClosureTime);
         if(aS.Exists(x => x.ClosureTime < DateTime.Now))
         {
-            
-
             foreach(Session s in aS.FindAll(x => x.ClosureTime < DateTime.Now))
             {
                 Console.WriteLine("Closed");
