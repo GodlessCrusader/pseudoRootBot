@@ -22,7 +22,8 @@ List<Command> commandList = new List<Command>()
     new DeleteCommand(botClient, cts.Token),
     new TreeCommand(botClient, cts.Token),
     new CreateCommand(botClient, cts.Token),
-    new LsCommand(botClient, cts.Token)
+    new LsCommand(botClient, cts.Token),
+    new GetCommand(botClient, cts.Token)
 };
 
 List<long> chats = new List<long>();
@@ -68,6 +69,8 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
             Console.WriteLine("Started session");
             activeSessions.Add(currentSession);
             Console.WriteLine("added to active sessions");
+            currentSession.ChangeKeyboard(commandList);
+
         }
         catch(Exception e)
         {
@@ -75,7 +78,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
             return;
         }
     }
-    Console.WriteLine($"Current session rootdir name:{currentSession.RootDir == null}");
+    Console.WriteLine($"Current session rootdir name:{currentSession.RootDir.Name}");
     
 
     var fileName = $"{currentSession.ChatId.ToString()}.json";
@@ -109,34 +112,29 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
     }
     if(update.Message.Text == null)
         return;
-    
-    List<string> cmdLn = update.Message.Text!.Split(" ").ToList<string>();
-    
+    string cmdLn = update.Message.Text;
+    if(currentSession.PreferedMode == CommandMode.InternalKeyboard)
+    {
+        cmdLn = TranslateKeyboardCommand(cmdLn);
+    }
+       
 
-    if(cmdLn[0] == "close")
+    List<string> cmds = update.Message.Text!.Split(" ").ToList<string>();
+    if(cmds[0] == "close")
     {
         currentSession.Close();
         activeSessions.Remove(currentSession);
         return;    
     }
-
-
-    if(commandList.Exists(x => x.Name == cmdLn[0]))                                                                      // Executes Command 
+    cmdLn = cmds[0];
+    if(commandList.Exists(x => x.Name == cmds[0]))                                    // Executes Command 
     {
         try
         {
-            // string? mess = 
-            commandList.Find(x => x.Name == cmdLn[0])!.Handle(update.Message.Text, currentSession);
-            
-            // if(mess!=null)
-            // {
-            //     await botClient.SendTextMessageAsync(
-            //     chatId: currentSession.ChatId,
-            //     text: mess ,
-            //     cancellationToken: cancellationToken);
-            // }
+            commandList.Find(x => x.Name == cmds[0])!.Handle(cmdLn, currentSession);
+            currentSession.ChangeKeyboard(commandList);
+
         }
-        
         catch(Exception ex)
         {
         await botClient.SendTextMessageAsync(
@@ -159,10 +157,6 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
     
 }
 
-
-
-
-
 Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
 {
     var ErrorMessage = exception switch
@@ -176,11 +170,10 @@ Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, Cancell
     return Task.CompletedTask;
 }
 
-void TimeoutCheck(List<Session> aS) //Thread secure rewrite
+void TimeoutCheck(List<Session> aS) 
 {
     while(aS.Count > 0)
     {
-        // Console.WriteLine(DateTime.Now - aS[0].ClosureTime);
         if(aS.Exists(x => x.ClosureTime < DateTime.Now))
         {
             foreach(Session s in aS.FindAll(x => x.ClosureTime < DateTime.Now))
@@ -192,10 +185,24 @@ void TimeoutCheck(List<Session> aS) //Thread secure rewrite
         }
     }
 }
-// void ShowChats(){
-//     int i = 1;
-//     foreach (long id in chats) {
-//         Console.WriteLine($"id {i++} : {id}");
-//     }
-//     Console.WriteLine();
-// }
+
+string TranslateKeyboardCommand(string cmdLn)
+{
+    string bashCmd = cmdLn;
+    if(cmdLn.Contains("📁"))
+    {
+        bashCmd = $"cd {cmdLn.Except("📁")}";
+    }
+
+    if(cmdLn.Contains("📄"))
+    {
+        bashCmd = $"get {cmdLn.Except("📄")}";
+    }
+
+    if(cmdLn.Contains("⤴️"))
+    {
+        bashCmd = $"cd {cmdLn.Except("⤴️")}";
+    }
+    
+    return bashCmd;
+}
