@@ -23,7 +23,8 @@ List<Command> commandList = new List<Command>()
     new TreeCommand(botClient, cts.Token),
     new CreateCommand(botClient, cts.Token),
     new LsCommand(botClient, cts.Token),
-    new GetCommand(botClient, cts.Token)
+    new GetCommand(botClient, cts.Token),
+    new ChangeModeCommand(botClient, cts.Token)
 };
 
 List<long> chats = new List<long>();
