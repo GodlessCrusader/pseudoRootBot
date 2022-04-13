@@ -5,6 +5,8 @@ class CdCommand : Command
 
     public CdCommand(TelegramBotClient botClient, CancellationToken ct)
     {
+        this.PerformingMessage = "Enter the name of destination directory";
+        this.RequiresArgument = true;
         this.Name = "cd";
         this.BotClient = botClient;
         this.CancellationToken = ct;

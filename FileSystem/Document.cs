@@ -7,6 +7,10 @@ public int MessageId {
     set;
     get;
 } = 0;
+public Document()
+{
+    
+}
 public Document(string name, Directory parent, int mesId){
     if(name!=null)
     {

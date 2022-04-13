@@ -1,6 +1,16 @@
 using Telegram.Bot;
 abstract class Command
-{   
+{
+    public string PerformingMessage
+    {
+        protected set;
+        get;
+    }   
+    public bool RequiresArgument
+    {
+        get;
+        protected set;
+    } = false;
     private TelegramBotClient bc;
     public TelegramBotClient BotClient
     {

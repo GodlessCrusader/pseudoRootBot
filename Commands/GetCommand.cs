@@ -3,6 +3,7 @@ class GetCommand : Command
 {
     public GetCommand(TelegramBotClient botClient, CancellationToken ct)
     {
+        this.RequiresArgument = true;
         this.Name = "get";
         this.BotClient = botClient;
         this.CancellationToken = ct;

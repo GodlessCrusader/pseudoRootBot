@@ -3,7 +3,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 class Session 
 {
-    private UserPreferences userPreferences;
+    public UserPreferences userPreferences = new UserPreferences();
     public CommandMode PreferedMode
     {
         set{
@@ -119,7 +119,9 @@ class Session
         {
             string jr = sr.ReadToEnd();
             Console.WriteLine($"Json Representation:{jr}");
+
             userPreferences = Newtonsoft.Json.JsonConvert.DeserializeObject<UserPreferences>(jr);
+            Console.WriteLine($"RootDir.ToString() {RootDir == null}");
             RootDir = userPreferences.RootDir;
             Console.WriteLine($"RootDir.ToString() {RootDir == null}");
            

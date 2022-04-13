@@ -6,6 +6,8 @@ class MkdirCommand : Command
 {
     public MkdirCommand(TelegramBotClient botClient, CancellationToken ct)
     {
+        this.PerformingMessage = "Enter the name of a new directory";
+        this.RequiresArgument = true;
         this.Name = "mkdir";
         this.BotClient = botClient;
         this.CancellationToken = ct;

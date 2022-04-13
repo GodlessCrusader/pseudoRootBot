@@ -4,6 +4,8 @@ class DeleteCommand : Command {
 
     public DeleteCommand(TelegramBotClient botClient, CancellationToken ct)
     {
+        this.PerformingMessage = "Enter the name of delete target";
+        this.RequiresArgument = true;
         this.Name = "delete";
         this.BotClient = botClient;
         this.CancellationToken = ct;
