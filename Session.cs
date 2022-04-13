@@ -188,8 +188,9 @@ class Session
                 we[z][o] = new KeyboardButton("");
         }
         int i = 0;
-        int j = 1;
+        int j = 2;
         we[0][0].Text = "⤴️..";
+        we[0][1].Text = "❌";
         foreach(Directory d in current.ChildDirectories)
         {
             if(j<2)

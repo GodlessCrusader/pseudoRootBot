@@ -10,11 +10,13 @@ using System.IO;
 
 List<Session> activeSessions = new List<Session>();
 
-var timeoutCheckThread = new Thread(() => TimeoutCheck(activeSessions));
+List<Session> sessionCloseList = new List<Session>();
 
 var botClient = new TelegramBotClient("5106073089:AAFUWHZLl7BN0qedxn41BRyVFPoIMjz9KB4");
 
 var cts  = new CancellationTokenSource();
+
+var timeoutCheckThread = new Thread(() => TimeoutCheck(activeSessions,sessionCloseList));
 
 List<Command> commandList = new List<Command>() 
 {
@@ -22,7 +24,7 @@ List<Command> commandList = new List<Command>()
     new MkdirCommand(botClient, cts.Token),
     new DeleteCommand(botClient, cts.Token),
     new TreeCommand(botClient, cts.Token),
-    new CreateCommand(botClient, cts.Token),
+    // new CreateCommand(botClient, cts.Token),
     new LsCommand(botClient, cts.Token),
     new GetCommand(botClient, cts.Token),
     new ChangeModeCommand(botClient, cts.Token)
@@ -50,26 +52,36 @@ Console.ReadLine();
 
 async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)      //On update
 {
-    
+    if (update.Type != UpdateType.Message)
+        return;
+    Session currentSession;
     if(activeSessions.Exists(x => x.ChatId == update.Message.Chat.Id))
     {
         Console.WriteLine("Entered Reset check");
-        activeSessions.Find(x => x.ChatId == update.Message.Chat.Id).ResetTimeout(1);
+        currentSession = activeSessions.Find(x => x.ChatId == update.Message.Chat.Id);
+        currentSession.ResetTimeout(3);
         if(IsPerforming != null && update.Type == UpdateType.Message && update.Message.Text != null)
-        {
-            string cmd = $"{IsPerforming.Name} {update.Message.Text}";
-            IsPerforming.Handle(cmd, activeSessions.Find(x => x.ChatId == update.Message.Chat.Id));
-            IsPerforming = null;
+        { 
+            try
+            {
+                string cmd = $"{IsPerforming.Name} {update.Message.Text}";
+                IsPerforming.Handle(cmd, currentSession);
+
+            }
+            catch(Exception ex)
+            {
+                await botClient.SendTextMessageAsync(
+                chatId: currentSession.ChatId,
+                text: ex.ToString() ,
+                cancellationToken: cancellationToken); 
+            }
+            finally
+            {
+                IsPerforming = null;
+                currentSession.ChangeKeyboard(commandList);
+
+            }
         }
-    }
-    if (update.Type != UpdateType.Message)
-        return;
-    
-    Session currentSession;
-    
-    if(activeSessions.Exists(x => x.ChatId == update.Message.Chat.Id))
-    {
-        currentSession = activeSessions.Find(x => x.ChatId == update.Message.Chat.Id); 
     }
     else
     {
@@ -127,18 +139,17 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
         cmdLn = TranslateKeyboardCommand(cmdLn, currentSession);
         if(cmdLn == null)
         {
-            botClient.SendTextMessageAsync(currentSession.ChatId,"Error performing");
             return;
         }
     }
-     List<string> cmds = ParseCommandLine(cmdLn);   
+    List<string> cmds = ParseCommandLine(cmdLn);   
     // if(cmdLn.Contains('!'))
     cmdLn = String.Join(' ',cmds);
 
     if(cmds[0] == "close")
     {
         currentSession.Close();
-        activeSessions.Remove(currentSession);
+        sessionCloseList.Add(currentSession);
         return;    
     }
 
@@ -160,9 +171,9 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
         cancellationToken: cancellationToken); 
         }
     }
-    if(!timeoutCheckThread.IsAlive) 
+    if(!timeoutCheckThread.IsAlive && activeSessions.Count>0) 
     {
-        timeoutCheckThread = new Thread(() => TimeoutCheck(activeSessions));
+        timeoutCheckThread = new Thread(() => TimeoutCheck(activeSessions, sessionCloseList));
         timeoutCheckThread.Start();
     }
 
@@ -187,10 +198,15 @@ Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, Cancell
     return Task.CompletedTask;
 }
 
-void TimeoutCheck(List<Session> aS) 
+void TimeoutCheck(List<Session> aS, List<Session> cS) 
 {
     while(aS.Count > 0)
     {
+        foreach(Session s in cS)
+        {
+            aS.Remove(s);
+        }
+        cS.Clear();
         if(aS.Exists(x => x.ClosureTime < DateTime.Now))
         {
             foreach(Session s in aS.FindAll(x => x.ClosureTime < DateTime.Now))
@@ -208,7 +224,7 @@ string TranslateKeyboardCommand(string cmdLn, Session session)
     string bashCmd = cmdLn;
     if(cmdLn.Contains("📁"))
     {
-        bashCmd = $"cd {cmdLn.Replace("📁", "")}";
+        bashCmd = $"cd !{cmdLn.Replace("📁", "")}!";
         Console.WriteLine($"bashcmd through translate metod:{bashCmd}");
     }
 
@@ -219,7 +235,12 @@ string TranslateKeyboardCommand(string cmdLn, Session session)
 
     if(cmdLn.Contains("⤴️"))
     {
-        bashCmd = $"cd {cmdLn.Replace("⤴️", "")}";
+        bashCmd = $"cd !{cmdLn.Replace("⤴️", "")}!";
+    }
+
+    if(cmdLn.Contains("❌"))
+    {
+        bashCmd = $"close";
     }
     
     else if(commandList.Exists(x => x.Name == cmdLn) && commandList.Find(x => x.Name == cmdLn).RequiresArgument)
