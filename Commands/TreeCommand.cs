@@ -6,11 +6,12 @@ class TreeCommand : Command {
 
     public TreeCommand(TelegramBotClient botClient, CancellationToken cts)
     {
+        this.UserButtonAlias = "Show file tree";
         this.Name = "tree";
         this.BotClient = botClient;
         this.CancellationToken = cts;
     }
-    public override string Handle(string cmdLn,Session session)
+    public override string Handle(List<string> args,Session session)
     {
         StringBuilder tree = new StringBuilder();
 

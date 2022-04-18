@@ -8,11 +8,10 @@ class GetCommand : Command
         this.BotClient = botClient;
         this.CancellationToken = ct;
     }
-    public override string Handle(string cmdLn, Session session)
+    public override string Handle(List<string> args, Session session)
     {
-        var cmds = cmdLn.Split(' ');
         var current = Directory.GetDirectory(session.Pwd, session.RootDir);
-        ForwardFile(session, current.DocContents.Find(x => x.Name == cmds[1]));
+        ForwardFile(session, current.DocContents.Find(x => x.Name == args[1]));
         return "";
     }
 }

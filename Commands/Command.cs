@@ -1,6 +1,12 @@
 using Telegram.Bot;
 abstract class Command
 {
+    public Queue<Command>? CorrespondingCommands = null;
+    public string? UserButtonAlias
+    {
+        protected set;
+        get;
+    }
     public string PerformingMessage
     {
         protected set;
@@ -43,7 +49,7 @@ abstract class Command
     }
     
 
-    public abstract string Handle(string cmdLn, Session session);
+    public abstract string Handle(List<string> args, Session session);
 
     public void SendMessage(Session session, string text)
     {

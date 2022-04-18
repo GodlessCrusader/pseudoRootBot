@@ -12,9 +12,8 @@ class CdCommand : Command
         this.CancellationToken = ct;
     }
 
-    public override string Handle(string cmdLn, Session session)
+    public override string Handle(List<string> args, Session session)
     {
-        List<string> args = cmdLn.Split(" ").ToList();
         if(args.Count > 1)
         {
             if(args[1] == "..")
@@ -36,7 +35,6 @@ class CdCommand : Command
                 {
                     s.Replace(" ", "");
                 }
-
 
                 Directory? current;
 

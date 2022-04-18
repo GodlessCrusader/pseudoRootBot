@@ -7,12 +7,13 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using Newtonsoft.Json;
 using System.IO;
+using PseudoRoot;
 
 List<Session> activeSessions = new List<Session>();
 
 List<Session> sessionCloseList = new List<Session>();
 
-var botClient = new TelegramBotClient("5106073089:AAFUWHZLl7BN0qedxn41BRyVFPoIMjz9KB4");
+var botClient = new TelegramBotClient("5106073089:AAFUWHZLl7BN0qedxn41BRyVFPoIMjz9KB4"); //Change
 
 var cts  = new CancellationTokenSource();
 
@@ -27,10 +28,12 @@ List<Command> commandList = new List<Command>()
     // new CreateCommand(botClient, cts.Token),
     new LsCommand(botClient, cts.Token),
     new GetCommand(botClient, cts.Token),
-    new ChangeModeCommand(botClient, cts.Token)
+    new ChangeModeCommand(botClient, cts.Token),
+    new ReRegisterCommand(botClient, cts.Token),
+    new RenameCommand(botClient, cts.Token)
 };
 
-Command? IsPerforming = null; 
+
 
 List<long> chats = new List<long>();
 
@@ -55,21 +58,60 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
     if (update.Type != UpdateType.Message)
         return;
     Session currentSession;
-    if(activeSessions.Exists(x => x.ChatId == update.Message.Chat.Id))
+    if(activeSessions.Exists(x => x.ChatId == update.Message!.Chat.Id))
     {
         Console.WriteLine("Entered Reset check");
-        currentSession = activeSessions.Find(x => x.ChatId == update.Message.Chat.Id);
+        currentSession = activeSessions.Find(x => x.ChatId == update.Message!.Chat.Id)!;
         currentSession.ResetTimeout(3);
-        if(IsPerforming != null && update.Type == UpdateType.Message && update.Message.Text != null)
-        { 
+        if(currentSession.IsPerforming != null && update.Type == UpdateType.Message && update.Message!.Text != null)
+        {
+            int IsPerformingCommandsCount = 0;
+            if(currentSession.IsPerforming.CorrespondingCommands != null)
+                IsPerformingCommandsCount = currentSession.IsPerforming.CorrespondingCommands.Count;
+            // Console.WriteLine($"Corresponding commands count: {IsPerforming.CorrespondingCommands.Count}");
             try
             {
-                string cmd = $"{IsPerforming.Name} {update.Message.Text}";
-                IsPerforming.Handle(cmd, currentSession);
+                Console.WriteLine($"Started performingArgs handling");
+                currentSession.performingArgs.Add($"!{update.Message.Text}!"); 
+                if(currentSession.IsPerforming.CorrespondingCommands != null)
+                {
+                    if(currentSession.IsPerforming.CorrespondingCommands.Count>0)
+                    {
+                        Console.WriteLine("Deguing corresponding command");
+                        currentSession.IsPerforming.CorrespondingCommands.Dequeue().Handle(new List<string>(), currentSession);
+                        return;
+                    }
+        
+                }
+               
+
+                if(currentSession.IsPerforming.CorrespondingCommands == null || currentSession.IsPerforming.CorrespondingCommands.Count == 0)
+                {
+                    string cmd;
+                    if((currentSession.IsPerforming.CorrespondingCommands != null && currentSession.IsPerforming.CorrespondingCommands.Count == 0 && currentSession.performingArgs.Count == IsPerformingCommandsCount))
+                    {
+                        currentSession.performingArgs.Add($"!{update.Message.Text}!");
+                    }
+                    
+                    if(currentSession.performingArgs.Count == 0)
+                    {
+                        cmd = $"{currentSession.IsPerforming.Name} {update.Message.Text}";    
+                    }
+                    else
+                    {
+                        cmd = String.Join("", currentSession.performingArgs);
+                        currentSession.performingArgs.Clear();
+                    }
+                     Console.WriteLine($"Performing args:{cmd}");
+                    currentSession.IsPerforming.Handle(AliesTranslation.ParseCommandLine($"{currentSession.IsPerforming.Name} {cmd}"), currentSession);
+                    currentSession.IsPerforming = null;
+                }
 
             }
             catch(Exception ex)
             {
+                currentSession.IsPerforming = null;
+                currentSession.performingArgs.Clear();
                 await botClient.SendTextMessageAsync(
                 chatId: currentSession.ChatId,
                 text: ex.ToString() ,
@@ -77,9 +119,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
             }
             finally
             {
-                IsPerforming = null;
                 currentSession.ChangeKeyboard(commandList);
-
             }
         }
     }
@@ -87,7 +127,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
     {
         try
         {
-            currentSession = Session.Start(botClient, update.Message.Chat.Id);
+            currentSession = Session.Start(botClient, update.Message!.Chat.Id);
             Console.WriteLine("Started session");
             activeSessions.Add(currentSession);
             Console.WriteLine("added to active sessions");
@@ -133,18 +173,20 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
     }
     if(update.Message.Text == null)
         return;
-    string cmdLn = update.Message.Text;
+    string? cmdLn = update.Message.Text;
     if(currentSession.PreferedMode == CommandMode.InternalKeyboard)
     {
-        cmdLn = TranslateKeyboardCommand(cmdLn, currentSession);
+        cmdLn = AliesTranslation.TranslateKeyboardCommand(cmdLn, currentSession, commandList);
         if(cmdLn == null)
         {
+            Console.WriteLine("isn't right");
             return;
         }
     }
-    List<string> cmds = ParseCommandLine(cmdLn);   
+    List<string> cmds = AliesTranslation.ParseCommandLine(cmdLn);   
     // if(cmdLn.Contains('!'))
     cmdLn = String.Join(' ',cmds);
+    Console.WriteLine($"isn't right{cmdLn}");
 
     if(cmds[0] == "close")
     {
@@ -159,7 +201,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
         try
         {
             Console.WriteLine($"Try block, command:{cmds[0]}, cmdLn: {cmdLn}");
-            commandList.Find(x => x.Name == cmds[0])!.Handle(cmdLn, currentSession);
+            commandList.Find(x => x.Name == cmds[0])!.Handle(cmds, currentSession);
             currentSession.ChangeKeyboard(commandList);
 
         }
@@ -219,60 +261,3 @@ void TimeoutCheck(List<Session> aS, List<Session> cS)
     }
 }
 
-string TranslateKeyboardCommand(string cmdLn, Session session)
-{
-    string bashCmd = cmdLn;
-    if(cmdLn.Contains("📁"))
-    {
-        bashCmd = $"cd !{cmdLn.Replace("📁", "")}!";
-        Console.WriteLine($"bashcmd through translate metod:{bashCmd}");
-    }
-
-    if(cmdLn.Contains("📄"))
-    {
-        bashCmd = $"get !{cmdLn.Replace("📄", "")}!";
-    }
-
-    if(cmdLn.Contains("⤴️"))
-    {
-        bashCmd = $"cd !{cmdLn.Replace("⤴️", "")}!";
-    }
-
-    if(cmdLn.Contains("❌"))
-    {
-        bashCmd = $"close";
-    }
-    
-    else if(commandList.Exists(x => x.Name == cmdLn) && commandList.Find(x => x.Name == cmdLn).RequiresArgument)
-    {
-        IsPerforming = commandList.Find(x => x.Name == cmdLn);
-        botClient.SendTextMessageAsync(session.ChatId,IsPerforming.PerformingMessage,replyMarkup: new ReplyKeyboardRemove()).Wait();
-        return null;
-    }
-    return bashCmd;
-}
-
-List<string> ParseCommandLine(string cmdLn)
-{
-    List<string>cmds = cmdLn!.Split(" ").ToList<string>();
-    if(cmds.Count>1)   
-    {   
-        List<int> markupPostitions = new List<int>();
-        for(int i = 0; i < cmds.Count; i++ )
-        {
-            var check = cmds[i].Contains("!");
-            if(check)
-            {   
-                markupPostitions.Add(i);
-            }
-        }
-        string arg = "";
-        foreach(int num in markupPostitions)
-        {
-            arg+=cmds[num].Replace("!","");
-        }
-        cmds[1] = arg;
-        Console.WriteLine(cmds[1]);
-    }
-    return cmds;
-}

@@ -8,7 +8,7 @@ class CreateCommand : Command
         this.CancellationToken = ct;
     }
 
-    public override string Handle(string cmdLn, Session session)
+    public override string Handle(List<string> args, Session session)
     {
         throw new NotImplementedException();
     }

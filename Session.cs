@@ -3,6 +3,8 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 class Session 
 {
+    public Command? IsPerforming = null; 
+    public List<string> performingArgs = new List<string>();
     public UserPreferences userPreferences = new UserPreferences();
     public CommandMode PreferedMode
     {
@@ -38,6 +40,13 @@ class Session
         }
     }
     private ITelegramBotClient botClient;
+    public ITelegramBotClient BotClient
+    {
+        get
+        {
+            return botClient;
+        }
+    }
     private Telegram.Bot.Types.File? fileSystemDoc;
     public Telegram.Bot.Types.File? FileSystemDoc
     {
@@ -176,10 +185,14 @@ class Session
         closureTime = DateTime.Now.AddMinutes(3);
     }
 
-   public void ChangeKeyboard(List<Command> lc)
+   public void ChangeKeyboard(List<Command>? lc)
     {
         var current = Directory.GetDirectory(this.Pwd, this.RootDir);
-        int c = current.ChildDirectories.Count + current.DocContents.Count + lc.Count;
+        int c;
+        if(lc != null)
+            c = current.ChildDirectories.Count + current.DocContents.Count + lc.Count;
+        else
+            c = current.ChildDirectories.Count + current.DocContents.Count;
         KeyboardButton[][] we = new KeyboardButton[c][];
         for(int z = 0; z < c;z++)
         {
@@ -223,24 +236,29 @@ class Session
             }
             
         }
-
-        foreach(Command d in lc)
+        if(lc != null)
         {
-            if(j<2)
+            foreach(Command d in lc)
             {
-                Console.WriteLine($"i:{i}");
-                we[i][j].Text = d.Name;
-                j++;
-            }
-            else
-            {
-                // we.Append(new KeyboardButton[3]{d.Name, "", ""});
-                i++;
-                we[i][0].Text = d.Name;
-                j = 1;
-            }
-            
-        }         
+                if(d.UserButtonAlias != null)
+                {
+                    if(j<2)
+                    {
+                        Console.WriteLine($"i:{i}");
+                        we[i][j].Text = d.UserButtonAlias;
+                        j++;
+                    }
+                    else
+                    {
+                        // we.Append(new KeyboardButton[3]{d.Name, "", ""});
+                        i++;
+                        we[i][0].Text = d.UserButtonAlias;
+                        j = 1;
+                    }
+                }
+                
+            }     
+        }    
         this.Keyboard.Keyboard = we;
         Console.WriteLine("Keyboard change is complete");
     }

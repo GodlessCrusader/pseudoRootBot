@@ -6,15 +6,15 @@ class MkdirCommand : Command
 {
     public MkdirCommand(TelegramBotClient botClient, CancellationToken ct)
     {
+        this.UserButtonAlias = "Make directory";
         this.PerformingMessage = "Enter the name of a new directory";
         this.RequiresArgument = true;
         this.Name = "mkdir";
         this.BotClient = botClient;
         this.CancellationToken = ct;
     }
-    public override string Handle(string cmdLn, Session session)
+    public override string Handle(List<string> args, Session session)
     {
-        var args = cmdLn.Split(" ").ToList();
         if(args.Capacity>1)
         {
             if(args[1].Intersect(forbiddenSyms).Count()>1)

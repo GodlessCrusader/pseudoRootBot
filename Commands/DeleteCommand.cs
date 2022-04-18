@@ -4,15 +4,15 @@ class DeleteCommand : Command {
 
     public DeleteCommand(TelegramBotClient botClient, CancellationToken ct)
     {
+        this.UserButtonAlias = "Delete";
         this.PerformingMessage = "Enter the name of delete target";
         this.RequiresArgument = true;
         this.Name = "delete";
         this.BotClient = botClient;
         this.CancellationToken = ct;
     }
-    public override string Handle(string cmdLn, Session session)
+    public override string Handle(List<string> args, Session session)
     {
-        var args = cmdLn.Split(" ").ToList();
         if(args.Count>1)
         {
             Directory? current = null;

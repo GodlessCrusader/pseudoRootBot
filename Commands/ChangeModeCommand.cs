@@ -6,8 +6,9 @@ class ChangeModeCommand : Command
         this.Name = "changemode";
         this.BotClient = botClient;
         this.CancellationToken = ct;
+        this.UserButtonAlias = "Change interface mode";
     }
-    public override string Handle(string cmdLn, Session session)
+    public override string Handle(List<string> args, Session session)
     {
         if(session.PreferedMode == CommandMode.InternalKeyboard)
         {

@@ -4,10 +4,10 @@ class FilePath
 
     public string GetString()
     {
-        string path = "$ /rom";
+        string path = @"$ \rom";
         foreach(string s in directories)
         {
-            path = path + "/" + s;
+            path = path + @"\" + s;
         }
         return path;
     }
