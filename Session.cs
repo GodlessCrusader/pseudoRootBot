@@ -3,6 +3,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 class Session 
 {
+    
     public Command? IsPerforming = null; 
     public List<string> performingArgs = new List<string>();
     public UserPreferences userPreferences = new UserPreferences();
@@ -86,6 +87,30 @@ class Session
         }
     }
 
+    public List<Command> CommandList
+    {
+        get;
+        private set;
+    }= new List<Command>() 
+    {
+        new CdCommand(),
+        new MkdirCommand(),
+        new DeleteCommand(),
+        new TreeCommand(),
+        // new CreateCommand(),
+        new LsCommand(),
+        new GetCommand(),
+        // new ChangeModeCommand(),
+        new ReRegisterCommand(),
+        new RenameCommand(),
+        new ShowCommandsCommand()
+    };
+
+    public List<Command> UserMenu = new List<Command>()
+    {
+        new ShowCommandsCommand()
+    };
+
     private Session(ITelegramBotClient botClient, long chatId)
     {
         startFlag = true;
@@ -141,23 +166,29 @@ class Session
 
     public void Close()
     {
-        // System.IO.File.Create($"{chatId.ToString()}.json");
-        StreamWriter sw = new StreamWriter(($"{chatId.ToString()}.json"));
-        string jr = Newtonsoft.Json.JsonConvert.SerializeObject(this.userPreferences);
-        sw.Write(jr);
-        sw.Dispose();
-        FileStream fileStream = new FileStream($"{chatId.ToString()}.json",FileMode.Open);
-        startFlag = false;
-        var media = new InputMediaDocument(new InputMedia(fileStream, $"{chatId.ToString()}.json"));
-        int mesId = botClient.GetChatAsync(chatId).Result.PinnedMessage.MessageId;
-        botClient.EditMessageMediaAsync(
-            chatId: chatId,
-            messageId: mesId,
-            media: media).Wait();
-        fileStream.Dispose();
-        System.IO.File.Delete($"{chatId.ToString()}.json");
-        Message s = botClient.SendTextMessageAsync(chatId,"Session is over. Write anything to start using pseudoroot").Result;
+        if(botClient.GetChatAsync(chatId).Result.PinnedMessage != null)
+        {
+            // System.IO.File.Create($"{chatId.ToString()}.json");
+            StreamWriter sw = new StreamWriter(($"{chatId.ToString()}.json"));
+            string jr = Newtonsoft.Json.JsonConvert.SerializeObject(this.userPreferences);
+            sw.Write(jr);
+            sw.Dispose();
+            FileStream fileStream = new FileStream($"{chatId.ToString()}.json",FileMode.Open);
+            startFlag = false;
+            var media = new InputMediaDocument(new InputMedia(fileStream, $"{chatId.ToString()}.json"));
+            int mesId = botClient.GetChatAsync(chatId).Result.PinnedMessage.MessageId;
+            botClient.EditMessageMediaAsync(
+                chatId: chatId,
+                messageId: mesId,
+                media: media).Wait();
+            fileStream.Dispose();
+            System.IO.File.Delete($"{chatId.ToString()}.json");
+            Message s = botClient.SendTextMessageAsync(
+                chatId,
+                "Session is over. Write anything to start using pseudoroot",
+                replyMarkup: new ReplyKeyboardMarkup(new KeyboardButton("Start"))).Result;
 
+        }
     }
 
     private void RegisterNewUser()
@@ -185,81 +216,95 @@ class Session
         closureTime = DateTime.Now.AddMinutes(3);
     }
 
-   public void ChangeKeyboard(List<Command>? lc)
+   public void ChangeKeyboard(List<Command>? lc, bool showContents = true)
     {
         var current = Directory.GetDirectory(this.Pwd, this.RootDir);
         int c;
-        if(lc != null)
-            c = current.ChildDirectories.Count + current.DocContents.Count + lc.Count;
-        else
+        if(lc == null)
             c = current.ChildDirectories.Count + current.DocContents.Count;
-        KeyboardButton[][] we = new KeyboardButton[c][];
-        for(int z = 0; z < c;z++)
+        else if(!showContents)
+            c = lc.Count;
+        else
+            c = current.ChildDirectories.Count + current.DocContents.Count + lc.Count;
+        if(c>0)
         {
-            we[z] = new KeyboardButton[3];
-            for(int o = 0;o<3;o++)
-                we[z][o] = new KeyboardButton("");
-        }
-        int i = 0;
-        int j = 2;
-        we[0][0].Text = "⤴️..";
-        we[0][1].Text = "❌";
-        foreach(Directory d in current.ChildDirectories)
-        {
-            if(j<2)
+            KeyboardButton[][] we = new KeyboardButton[c][];
+            for(int z = 0; z < c;z++)
             {
-                we[i][j].Text = $"📁{d.Name}";
-                j++;
+                we[z] = new KeyboardButton[3];
+                for(int o = 0;o<3;o++)
+                    we[z][o] = new KeyboardButton("");
             }
-            else
+            int i = 1;
+            int j = 0;
+            we[0][0].Text = "⤴️..";
+            we[0][1].Text = "❌";
+            foreach(Directory d in current.ChildDirectories)
             {
-                // we.Append(new KeyboardButton[3]{$"📁{d.Name}", "", ""});
-                i++;
-                we[i][0].Text = $"📁{d.Name}";
-                j = 1;
-            }
-            
-        }
-        foreach(Document d in current.DocContents)
-        {
-            if(j<2)
-            {
-                we[i][j].Text = $"📄{d.Name}";
-                j++;
-            }
-            else
-            {
-                // we.Append(new KeyboardButton[3]{$"📄{d.Name}", new(""), new("")});
-                i++;
-                we[i][0].Text = $"📄{d.Name}";
-                j = 1;
-            }
-            
-        }
-        if(lc != null)
-        {
-            foreach(Command d in lc)
-            {
-                if(d.UserButtonAlias != null)
+                if(j<3)
                 {
-                    if(j<2)
+                    we[i][j].Text = $"📁{d.Name}";
+                    j++;
+                }
+                else
+                {
+                    // we.Append(new KeyboardButton[3]{$"📁{d.Name}", "", ""});
+                    i++;
+                    if(i<c)
                     {
-                        Console.WriteLine($"i:{i}");
-                        we[i][j].Text = d.UserButtonAlias;
-                        j++;
-                    }
-                    else
-                    {
-                        // we.Append(new KeyboardButton[3]{d.Name, "", ""});
-                        i++;
-                        we[i][0].Text = d.UserButtonAlias;
+                        we[i][0].Text = $"📁{d.Name}";
                         j = 1;
                     }
                 }
                 
-            }     
-        }    
-        this.Keyboard.Keyboard = we;
+            }
+            foreach(Document d in current.DocContents)
+            {
+                if(j<3)
+                {
+                    we[i][j].Text = $"📄{d.Name}";
+                    j++;
+                }
+                else
+                {
+                    if(i<c)
+                    {
+                        // we.Append(new KeyboardButton[3]{$"📄{d.Name}", new(""), new("")});
+                        i++;
+                        we[i][0].Text = $"📄{d.Name}";
+                        j = 1;}
+                    }
+                
+            }
+            if(lc != null)
+            {
+                foreach(Command d in lc)
+                {
+                    if(d.UserButtonAlias != null)
+                    {
+                        if(j<3)
+                        {
+                            Console.WriteLine($"i:{i}");
+                            we[i][j].Text = d.UserButtonAlias;
+                            j++;
+                        }
+                        else
+                        {
+                            if(i<c)
+                            {
+                                // we.Append(new KeyboardButton[3]{d.Name, "", ""});
+                                i++;
+                                we[i][0].Text = d.UserButtonAlias;
+                                j = 1;
+                            }
+                        }
+                    }
+                    
+                }     
+            } 
+            this.Keyboard.Keyboard = we; 
+        }  
+        
         Console.WriteLine("Keyboard change is complete");
     }
     

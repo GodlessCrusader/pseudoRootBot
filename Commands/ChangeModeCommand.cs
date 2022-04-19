@@ -4,11 +4,10 @@ class ChangeModeCommand : Command
     public ChangeModeCommand(TelegramBotClient botClient, CancellationToken ct)
     {
         this.Name = "changemode";
-        this.BotClient = botClient;
-        this.CancellationToken = ct;
         this.UserButtonAlias = "Change interface mode";
+        this.Run = HandleDelegate;
     }
-    public override string Handle(List<string> args, Session session)
+    public override string HandleDelegate(List<string> args, Session session)
     {
         if(session.PreferedMode == CommandMode.InternalKeyboard)
         {

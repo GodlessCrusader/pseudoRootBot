@@ -4,6 +4,28 @@ namespace PseudoRoot
 {
     class AliesTranslation
     {
+        public static RootMember? TranslateKeyboardArg(string input, Directory current)
+        {
+            string actualName = input;
+            RootMember arg = null;
+            if(actualName.Contains("📁"))
+            {
+                actualName = actualName.Replace("📁", "");
+            }
+
+            if(actualName.Contains("📄"))
+            {
+                actualName = actualName.Replace("📄", "");
+            }
+            if(current.ChildDirectories.Exists(x => x.Name == actualName))
+                    arg = current.ChildDirectories.Find(x => x.Name == actualName);
+            else if(current.DocContents.Exists(x => x.Name == actualName))
+                arg = current.DocContents.Find(x => x.Name == actualName);
+            else
+                throw new Exception("This directory doesn't exist");
+            
+            return arg;
+        }
         public static string TranslateKeyboardCommand(string cmdLn, Session session, List<Command> commandList)
         {
             string bashCmd = cmdLn;
@@ -38,9 +60,19 @@ namespace PseudoRoot
                 else
                 {
                     session.IsPerforming = commandList.Find(x => x.UserButtonAlias == cmdLn);
-                    session.ChangeKeyboard(null);
+                   
                     if(session.IsPerforming != null)
-                        session.BotClient.SendTextMessageAsync(session.ChatId,session.IsPerforming.PerformingMessage,replyMarkup:session.Keyboard).Wait();
+                    {
+                        if(session.IsPerforming.Name != "mkdir")
+                        {    
+                            session.ChangeKeyboard(null);
+                            session.BotClient.SendTextMessageAsync(session.ChatId,session.IsPerforming.PerformingMessage,replyMarkup:session.Keyboard).Wait();
+                        }
+                        else
+                        {
+                            session.BotClient.SendTextMessageAsync(session.ChatId,session.IsPerforming.PerformingMessage,replyMarkup:new ReplyKeyboardRemove()).Wait();        
+                        }
+                    }
                     return null;
                 }
             }

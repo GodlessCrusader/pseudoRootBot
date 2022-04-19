@@ -4,14 +4,13 @@ using Telegram.Bot;
 
 class TreeCommand : Command {
 
-    public TreeCommand(TelegramBotClient botClient, CancellationToken cts)
+    public TreeCommand()
     {
         this.UserButtonAlias = "Show file tree";
         this.Name = "tree";
-        this.BotClient = botClient;
-        this.CancellationToken = cts;
+        this.Run = HandleDelegate;
     }
-    public override string Handle(List<string> args,Session session)
+    public override string HandleDelegate(List<string> args,Session session)
     {
         StringBuilder tree = new StringBuilder();
 
@@ -29,7 +28,7 @@ class TreeCommand : Command {
         lvl++;
         foreach(int dm in downLineNums)
             Console.WriteLine($"lvl {lvl} dln {dm} ");
-        tree.AppendLine($"|__{dir.Name}");
+        tree.AppendLine($"|__📁{dir.Name}");
         foreach(Directory d in dir.ChildDirectories)
         {
             for(int i = 0 ; i<lvl ; i++)
@@ -69,7 +68,7 @@ class TreeCommand : Command {
                     tree.Append("   ");
                 }
             }
-            tree.AppendLine($"|__{d.Name}");
+            tree.AppendLine($"|__📄{d.Name}");
 
         }
         

@@ -1,14 +1,13 @@
 using Telegram.Bot;
 class GetCommand : Command
 {
-    public GetCommand(TelegramBotClient botClient, CancellationToken ct)
+    public GetCommand()
     {
         this.RequiresArgument = true;
         this.Name = "get";
-        this.BotClient = botClient;
-        this.CancellationToken = ct;
+        this.Run = HandleDelegate;
     }
-    public override string Handle(List<string> args, Session session)
+    public override string HandleDelegate(List<string> args, Session session)
     {
         var current = Directory.GetDirectory(session.Pwd, session.RootDir);
         ForwardFile(session, current.DocContents.Find(x => x.Name == args[1]));

@@ -4,16 +4,15 @@ using Telegram.Bot;
 
 class MkdirCommand : Command
 {
-    public MkdirCommand(TelegramBotClient botClient, CancellationToken ct)
+    public MkdirCommand()
     {
         this.UserButtonAlias = "Make directory";
         this.PerformingMessage = "Enter the name of a new directory";
         this.RequiresArgument = true;
         this.Name = "mkdir";
-        this.BotClient = botClient;
-        this.CancellationToken = ct;
+        this.Run = HandleDelegate;
     }
-    public override string Handle(List<string> args, Session session)
+    public override string HandleDelegate(List<string> args, Session session)
     {
         if(args.Capacity>1)
         {

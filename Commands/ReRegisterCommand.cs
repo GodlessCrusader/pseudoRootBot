@@ -1,16 +1,15 @@
 using Telegram.Bot;
 class ReRegisterCommand : Command
 {
-    public ReRegisterCommand(TelegramBotClient botClient, CancellationToken ct)
+    public ReRegisterCommand()
     {
         this.UserButtonAlias = "Default settings(Reregister)";
         this.Name="reregister";
-        this.BotClient = botClient;
-        this.CancellationToken = ct;
+        this.Run = HandleDelegate;
     }
-    public override string Handle(List<string> args, Session session)
+    public override string HandleDelegate(List<string> args, Session session)
     {
-       BotClient.UnpinAllChatMessages(session.ChatId);
+       session.BotClient.UnpinAllChatMessages(session.ChatId);
        SendMessage(session, "Reopen your session for reregistration");
        return "";
     }

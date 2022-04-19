@@ -1,14 +1,12 @@
 using Telegram.Bot;
 class CreateCommand : Command
 {
-    public CreateCommand(TelegramBotClient botClient, CancellationToken ct)
+    public CreateCommand()
     {
         this.Name = "create";
-        this.BotClient = botClient;
-        this.CancellationToken = ct;
     }
 
-    public override string Handle(List<string> args, Session session)
+    public override string HandleDelegate(List<string> args, Session session)
     {
         throw new NotImplementedException();
     }

@@ -1,7 +1,7 @@
-class Directory
+class Directory : RootMember
 {  
-    public string Name {get; set; }
-    public string? parentDir {get; set; }
+    // public string Name {get; set; }
+    // public string? parentDir {get; set; }
     public List<Directory> ChildDirectories = new List<Directory>();
     public List<Document> DocContents = new List<Document>();
    
@@ -10,13 +10,13 @@ class Directory
         this.Name = name;
         if(parent!=null)
         {
-            this.parentDir = parent.Name;
+            this.ParentDir = parent.Name;
         }
     }
 
     public bool IsRootDirectory()
     {
-        if (this.parentDir == null)
+        if (this.ParentDir == null)
         {
             return true;
         } 

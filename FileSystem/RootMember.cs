@@ -1,11 +1,15 @@
 class RootMember {
-    public string parentDir
-    {set; get;} = "";
     public string Name {
         set;
         get;
     } = "rom";
+    public string? ParentDir
+    {set; get;} = "";
+   
+    public RootMember()
+    {
 
+    }
     // public RootMember(string name, RootMember parent)
     // {
     //     this.Name = name;

@@ -3,16 +3,15 @@ using Telegram.Bot;
 class CdCommand : Command
 {
 
-    public CdCommand(TelegramBotClient botClient, CancellationToken ct)
+    public CdCommand()
     {
         this.PerformingMessage = "Enter the name of destination directory";
         this.RequiresArgument = true;
         this.Name = "cd";
-        this.BotClient = botClient;
-        this.CancellationToken = ct;
+        this.Run = HandleDelegate;
     }
 
-    public override string Handle(List<string> args, Session session)
+    public override string HandleDelegate(List<string> args, Session session)
     {
         if(args.Count > 1)
         {

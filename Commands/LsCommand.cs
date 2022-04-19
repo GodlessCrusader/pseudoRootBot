@@ -2,14 +2,13 @@ using System.Text;
 using Telegram.Bot;
 class LsCommand : Command
 {
-    public LsCommand(TelegramBotClient botClient, CancellationToken ct)
+    public LsCommand()
     {
         this.UserButtonAlias = "Show contents";
         this.Name = "ls";
-        this.BotClient = botClient;
-        this.CancellationToken = ct;
+        this.Run = HandleDelegate;
     }
-    public override string Handle(List<string> args, Session session)
+    public override string HandleDelegate(List<string> args, Session session)
     {
         Directory current = Directory.GetDirectory(session.Pwd, session.RootDir);
         StringBuilder stringBuilder = new StringBuilder();
