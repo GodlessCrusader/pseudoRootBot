@@ -12,7 +12,7 @@ class MkdirCommand : Command
         this.Name = "mkdir";
         this.Run = HandleDelegate;
     }
-    public override string HandleDelegate(List<string> args, Session session)
+    public override string HandleDelegate(List<string?> args, Session session)
     {
         if(args.Capacity>1)
         {
@@ -50,6 +50,7 @@ class MkdirCommand : Command
                 }
             }   
         }
+        session.ChangeKeyboard(null);
         return null!;
     }
     private const string forbiddenSyms = @"""/\,:.?#%&{}$!'@<>* +|=";

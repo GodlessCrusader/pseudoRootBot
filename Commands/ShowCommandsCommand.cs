@@ -7,7 +7,7 @@ class ShowCommandsCommand : Command
         this.UserButtonAlias = "Options";
         this.Run = HandleDelegate;
     }
-    public override string HandleDelegate(List<string> args, Session session)
+    public override string HandleDelegate(List<string?> args, Session session)
     {
         session.ChangeKeyboard(new List<Command>(){
             new MkdirCommand(),

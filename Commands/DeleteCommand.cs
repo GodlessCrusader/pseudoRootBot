@@ -10,7 +10,7 @@ class DeleteCommand : Command {
         this.Name = "delete";
         this.Run = HandleDelegate;
     }
-    public override string HandleDelegate(List<string> args, Session session)
+    public override string HandleDelegate(List<string?> args, Session session)
     {
         var current = Directory.GetDirectory(session.Pwd, session.RootDir);
         var target = PseudoRoot.AliesTranslation.TranslateKeyboardArg(args[1], current);
@@ -18,6 +18,7 @@ class DeleteCommand : Command {
             current.ChildDirectories.Remove((Directory)target);
         if(target is Document)
             current.DocContents.Remove((Document)target);
+        session.ChangeKeyboard(null);
         return "";
     }
 }

@@ -13,7 +13,7 @@ class RenameCommand : Command
         CorrespondingCommands.Enqueue(new SendMessageCommand("Enter new name", null));
         Console.WriteLine($"Corresponding command count construction: {CorrespondingCommands.Count}");
     }
-    public override string HandleDelegate(List<string> args, Session session)
+    public override string HandleDelegate(List<string?> args, Session session)
     {
         CorrespondingCommands.Enqueue(new SendMessageCommand("Enter new name", null));
         var current = Directory.GetDirectory(session.Pwd, session.RootDir);
@@ -27,7 +27,7 @@ class RenameCommand : Command
 
         target.Name = args[2];
 
-        
+        session.ChangeKeyboard(null);
         return "";
     }
 }

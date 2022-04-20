@@ -11,7 +11,7 @@ class CdCommand : Command
         this.Run = HandleDelegate;
     }
 
-    public override string HandleDelegate(List<string> args, Session session)
+    public override string HandleDelegate(List<string?> args, Session session)
     {
         if(args.Count > 1)
         {
@@ -85,7 +85,7 @@ class CdCommand : Command
                 
             }
         }
-
+        session.ChangeKeyboard(null);
         return null!;
     }
 }

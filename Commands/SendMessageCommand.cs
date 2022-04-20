@@ -10,7 +10,7 @@ class SendMessageCommand : Command
         this.RequiresArgument = true;
         this.Run = HandleDelegate;
     }
-    public override string HandleDelegate(List<string> args, Session session)
+    public override string HandleDelegate(List<string?> args, Session session)
     {
         session.ChangeKeyboard(rkm);
         SendMessage(session, this.PerformingMessage);

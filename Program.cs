@@ -52,65 +52,42 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
             int IsPerformingCommandsCount = 0;
             if(currentSession.IsPerforming.CorrespondingCommands != null)
                 IsPerformingCommandsCount = currentSession.IsPerforming.CorrespondingCommands.Count;
-            // Console.WriteLine($"Corresponding commands count: {IsPerforming.CorrespondingCommands.Count}");
-            try
-            {
-                Console.WriteLine($"Started performingArgs handling");
-                currentSession.performingArgs.Add($"!{update.Message.Text}!"); 
-                if(currentSession.IsPerforming.CorrespondingCommands != null)
-                {
-                    if(currentSession.IsPerforming.CorrespondingCommands.Count>0)
-                    {
-                        Console.WriteLine("Deguing corresponding command");
-                        currentSession.IsPerforming.CorrespondingCommands.Dequeue().Handle(new List<string>(), currentSession);
-                        return;
-                    }
         
-                }
-               
-
-                if(currentSession.IsPerforming.CorrespondingCommands == null || currentSession.IsPerforming.CorrespondingCommands.Count == 0)
+            Console.WriteLine($"Started performingArgs handling");
+            currentSession.performingArgs.Add($"!{update.Message.Text}!"); 
+            if(currentSession.IsPerforming.CorrespondingCommands != null)
+            {
+                if(currentSession.IsPerforming.CorrespondingCommands.Count>0)
                 {
-                    string cmd;
-                    if((currentSession.IsPerforming.CorrespondingCommands != null && currentSession.IsPerforming.CorrespondingCommands.Count == 0 && currentSession.performingArgs.Count == IsPerformingCommandsCount))
-                    {
-                        currentSession.performingArgs.Add($"!{update.Message.Text}!");
-                    }
-                    
-                    if(currentSession.performingArgs.Count == 0)
-                    {
-                        cmd = $"{currentSession.IsPerforming.Name} {update.Message.Text}";    
-                    }
-                    else
-                    {
-                        cmd = String.Join("", currentSession.performingArgs);
-                        currentSession.performingArgs.Clear();
-                    }
-                    Console.WriteLine($"Performing args:{cmd}");
-                    currentSession.IsPerforming.Handle(AliesTranslation.ParseCommandLine($"{currentSession.IsPerforming.Name} {cmd}"), currentSession);
-                    currentSession.IsPerforming = null;
-                    currentSession.ChangeKeyboard(currentSession.UserMenu);
-                    botClient.SendTextMessageAsync(                                                             // Echo the present working directory
-                    chatId: currentSession.ChatId,
-                    text: currentSession.Pwd.GetString(),
-                    replyMarkup: currentSession.Keyboard,
-                    cancellationToken: cancellationToken);
+                    Console.WriteLine("Deguing corresponding command");
+                    currentSession.IsPerforming.CorrespondingCommands.Dequeue().Handle(new List<string>(), currentSession);
                     return;
                 }
+    
+            }
+            
 
-            }
-            catch(Exception ex)
+            if(currentSession.IsPerforming.CorrespondingCommands == null || currentSession.IsPerforming.CorrespondingCommands.Count == 0)
             {
+                string cmd;
+                if((currentSession.IsPerforming.CorrespondingCommands != null && currentSession.IsPerforming.CorrespondingCommands.Count == 0 && currentSession.performingArgs.Count == IsPerformingCommandsCount))
+                {
+                    currentSession.performingArgs.Add($"!{update.Message.Text}!");
+                }
+                
+                if(currentSession.performingArgs.Count == 0)
+                {
+                    cmd = $"{currentSession.IsPerforming.Name} {update.Message.Text}";    
+                }
+                else
+                {
+                    cmd = String.Join("", currentSession.performingArgs);
+                    currentSession.performingArgs.Clear();
+                }
+                Console.WriteLine($"Performing args:{cmd}");
+                currentSession.IsPerforming.Handle(AliesTranslation.ParseCommandLine($"{currentSession.IsPerforming.Name} {cmd}"), currentSession);
                 currentSession.IsPerforming = null;
-                currentSession.performingArgs.Clear();
-                await botClient.SendTextMessageAsync(
-                chatId: currentSession.ChatId,
-                text: ex.ToString() ,
-                cancellationToken: cancellationToken); 
-            }
-            finally
-            {
-                currentSession.ChangeKeyboard(currentSession.UserMenu);
+                return;
             }
         }
     }
@@ -122,7 +99,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
             Console.WriteLine("Started session");
             activeSessions.Add(currentSession);
             Console.WriteLine("added to active sessions");
-            currentSession.ChangeKeyboard(currentSession.UserMenu);
+            currentSession.ChangeKeyboard(null);
 
         }
         catch(Exception e)
@@ -150,16 +127,12 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
     };
     if(allowedTypes.Exists(x => x == update.Message.Type))                                  //Drag'n'drop
     {
-        var mesId = update.Message.MessageId;
+        var mesId = update.Message.MessageId.ToString();
         string? documentName = null;
         if(update.Message.Document != null)
             documentName = update.Message.Document.FileName;
-        CreateCommand.Handle(currentSession, documentName, mesId);
-        botClient.SendTextMessageAsync(                                                             // Echo the present working directory
-        chatId: currentSession.ChatId,
-        text: currentSession.Pwd.GetString(),
-        replyMarkup: currentSession.Keyboard,
-        cancellationToken: cancellationToken);
+        if(currentSession.CommandList.Exists(x => x is CreateCommand))
+            currentSession.CommandList.Find(x => x is CreateCommand)!.Handle(new List<string?>(){documentName, mesId} ,currentSession);
         return;
     }
     if(update.Message.Text == null)
@@ -175,7 +148,6 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
         }
     }
     List<string> cmds = AliesTranslation.ParseCommandLine(cmdLn);   
-    // if(cmdLn.Contains('!'))
     cmdLn = String.Join(' ',cmds);
     Console.WriteLine($"isn't right{cmdLn}");
 
@@ -190,36 +162,16 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
         return;    
     }
 
-    // cmdLn = cmds[0];
-    if(currentSession.CommandList.Exists(x => x.Name == cmds[0]))                                    // Executes Command 
+    if( currentSession.CommandList.Exists(x => x.Name == cmds[0]))                                    // Executes Command 
     {
-        try
-        {
-            Console.WriteLine($"Try block, command:{cmds[0]}, cmdLn: {cmdLn}");
-            currentSession.CommandList.Find(x => x.Name == cmds[0])!.Handle(cmds, currentSession);
-            currentSession.ChangeKeyboard(currentSession.UserMenu);
-
-        }
-        catch(Exception ex)
-        {
-        await botClient.SendTextMessageAsync(
-        chatId: currentSession.ChatId,
-        text: ex.ToString() ,
-        cancellationToken: cancellationToken); 
-        }
+        Console.WriteLine($"Try block, command:{cmds[0]}, cmdLn: {cmdLn}");
+        currentSession.CommandList.Find(x => x.Name == cmds[0])!.Handle(cmds, currentSession);
     }
     if(!timeoutCheckThread.IsAlive && activeSessions.Count>0) 
     {
         timeoutCheckThread = new Thread(() => TimeoutCheck(activeSessions));
         timeoutCheckThread.Start();
     }
-
-    await botClient.SendTextMessageAsync(                                                             // Echo the present working directory
-        chatId: currentSession.ChatId,
-        text: currentSession.Pwd.GetString(),
-        replyMarkup: currentSession.Keyboard,
-        cancellationToken: cancellationToken);
-    
 }
 
 Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
@@ -241,11 +193,6 @@ void TimeoutCheck(List<Session> aS)
     
     while(true)
     {   
-        // foreach(Session s in cS)
-        // {
-        //     aS.Remove(s);
-        // }
-        // cS.Clear();
         lock(timeoutCheckThreadLock)
         {
             if(aS.Exists(x => x.ClosureTime < DateTime.Now))

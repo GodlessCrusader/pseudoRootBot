@@ -7,7 +7,7 @@ class ReRegisterCommand : Command
         this.Name="reregister";
         this.Run = HandleDelegate;
     }
-    public override string HandleDelegate(List<string> args, Session session)
+    public override string HandleDelegate(List<string?> args, Session session)
     {
        session.BotClient.UnpinAllChatMessages(session.ChatId);
        SendMessage(session, "Reopen your session for reregistration");

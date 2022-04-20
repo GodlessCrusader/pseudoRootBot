@@ -103,13 +103,14 @@ class Session
         // new ChangeModeCommand(),
         new ReRegisterCommand(),
         new RenameCommand(),
-        new ShowCommandsCommand()
+        new ShowCommandsCommand(),
+        new CreateCommand()
     };
 
-    public List<Command> UserMenu = new List<Command>()
-    {
-        new ShowCommandsCommand()
-    };
+    // public List<Command> UserMenu = new List<Command>()
+    // {
+    //     new ShowCommandsCommand()
+    // };
 
     private Session(ITelegramBotClient botClient, long chatId)
     {
@@ -139,6 +140,8 @@ class Session
         else
             {ses.Open();
             Console.WriteLine("session opened");}
+        ses.ChangeKeyboard(null);
+        botClient.SendTextMessageAsync(chatId,ses.Pwd.GetString(),replyMarkup: ses.Keyboard);
         return ses;
     }
     
@@ -221,7 +224,7 @@ class Session
         var current = Directory.GetDirectory(this.Pwd, this.RootDir);
         int c;
         if(lc == null)
-            c = current.ChildDirectories.Count + current.DocContents.Count;
+            c = current.ChildDirectories.Count + current.DocContents.Count + 1;
         else if(!showContents)
             c = lc.Count;
         else
@@ -235,46 +238,52 @@ class Session
                 for(int o = 0;o<3;o++)
                     we[z][o] = new KeyboardButton("");
             }
-            int i = 1;
+            int i = 0;
             int j = 0;
-            we[0][0].Text = "⤴️..";
-            we[0][1].Text = "❌";
-            foreach(Directory d in current.ChildDirectories)
+            if(showContents)
             {
-                if(j<3)
+                i++;
+                we[0][0].Text = "⤴️..";
+                we[0][1].Text = "❌";
+                we[0][2].Text = new ShowCommandsCommand().UserButtonAlias;
+                foreach(Directory d in current.ChildDirectories)
                 {
-                    we[i][j].Text = $"📁{d.Name}";
-                    j++;
-                }
-                else
-                {
-                    // we.Append(new KeyboardButton[3]{$"📁{d.Name}", "", ""});
-                    i++;
-                    if(i<c)
+                    if(j<3)
                     {
-                        we[i][0].Text = $"📁{d.Name}";
-                        j = 1;
+                        we[i][j].Text = $"📁{d.Name}";
+                        j++;
                     }
-                }
-                
-            }
-            foreach(Document d in current.DocContents)
-            {
-                if(j<3)
-                {
-                    we[i][j].Text = $"📄{d.Name}";
-                    j++;
-                }
-                else
-                {
-                    if(i<c)
+                    else
                     {
-                        // we.Append(new KeyboardButton[3]{$"📄{d.Name}", new(""), new("")});
+                        // we.Append(new KeyboardButton[3]{$"📁{d.Name}", "", ""});
                         i++;
-                        we[i][0].Text = $"📄{d.Name}";
-                        j = 1;}
+                        if(i<c)
+                        {
+                            we[i][0].Text = $"📁{d.Name}";
+                            j = 1;
+                        }
                     }
-                
+                    
+                }
+                foreach(Document d in current.DocContents)
+                {
+                    if(j<3)
+                    {
+                        we[i][j].Text = $"📄{d.Name}";
+                        j++;
+                    }
+                    else
+                    {
+                        if(i<c)
+                        {
+                            // we.Append(new KeyboardButton[3]{$"📄{d.Name}", new(""), new("")});
+                            i++;
+                            we[i][0].Text = $"📄{d.Name}";
+                            j = 1;
+                        }
+                    }
+                    
+                }
             }
             if(lc != null)
             {

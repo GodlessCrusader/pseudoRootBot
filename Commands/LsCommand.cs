@@ -8,7 +8,7 @@ class LsCommand : Command
         this.Name = "ls";
         this.Run = HandleDelegate;
     }
-    public override string HandleDelegate(List<string> args, Session session)
+    public override string HandleDelegate(List<string?> args, Session session)
     {
         Directory current = Directory.GetDirectory(session.Pwd, session.RootDir);
         StringBuilder stringBuilder = new StringBuilder();
@@ -23,6 +23,7 @@ class LsCommand : Command
                 session,
                 d
             );
+        session.ChangeKeyboard(null);    
         return null;
     }
 

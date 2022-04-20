@@ -1,7 +1,7 @@
 using Telegram.Bot;
 abstract class Command
 {
-    protected delegate string Handler(List<string> args, Session session);
+    protected delegate string Handler(List<string?> args, Session session);
     protected Handler Run;
     public Queue<Command>? CorrespondingCommands = null;
     public string? UserButtonAlias
@@ -9,7 +9,7 @@ abstract class Command
         protected set;
         get;
     }
-    public string PerformingMessage
+    public string? PerformingMessage
     {
         protected set;
         get;
@@ -31,18 +31,19 @@ abstract class Command
         }
     }
     
-    public abstract string HandleDelegate(List<string> args, Session session);
+    public abstract string HandleDelegate(List<string?> args, Session session);
 
-    public void Handle(List<string> args, Session session)
+    public void Handle(List<string?> args, Session session)
     {
         try
         {
             Run(args, session);
-            SendMessage(session,$"{session.Pwd.GetString}");
+            SendMessage(session,$"{session.Pwd.GetString()}");
+            session.ChangeKeyboard(null);
         }
         catch(Exception ex)
         {
-            session.ChangeKeyboard(session.UserMenu);
+            session.ChangeKeyboard(null);
             SendMessage(session, ex.ToString());
         }
     }

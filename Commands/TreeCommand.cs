@@ -10,7 +10,7 @@ class TreeCommand : Command {
         this.Name = "tree";
         this.Run = HandleDelegate;
     }
-    public override string HandleDelegate(List<string> args,Session session)
+    public override string HandleDelegate(List<string?> args,Session session)
     {
         StringBuilder tree = new StringBuilder();
 
@@ -19,7 +19,7 @@ class TreeCommand : Command {
             SendMessage(session, DrawFileTree(session.RootDir,tree, 0, new List<int>()).ToString());
             return DrawFileTree(session.RootDir,tree, 0, new List<int>()).ToString();
         }
-        
+        session.ChangeKeyboard(null);
         return tree.ToString();
     }
 

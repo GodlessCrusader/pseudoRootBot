@@ -7,7 +7,7 @@ class ChangeModeCommand : Command
         this.UserButtonAlias = "Change interface mode";
         this.Run = HandleDelegate;
     }
-    public override string HandleDelegate(List<string> args, Session session)
+    public override string HandleDelegate(List<string?> args, Session session)
     {
         if(session.PreferedMode == CommandMode.InternalKeyboard)
         {
@@ -17,7 +17,7 @@ class ChangeModeCommand : Command
         {
             session.PreferedMode = CommandMode.InternalKeyboard;
         }
-            
+        
         return "";
     }
 }
