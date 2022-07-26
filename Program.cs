@@ -15,7 +15,7 @@ object timeoutCheckThreadLock = new object();
 
 bool timeoutCheckFlag = false;
 
-var botClient = new TelegramBotClient("5106073089:AAFUWHZLl7BN0qedxn41BRyVFPoIMjz9KB4"); //Change
+var botClient = new TelegramBotClient(args[0]); //Change
 
 var cts  = new CancellationTokenSource();
 
@@ -31,7 +31,7 @@ botClient.StartReceiving(                                                       
     receiverOptions,
     cancellationToken: cts.Token
 );
-// botClient.UnpinAllChatMessages(480568360);
+
 var me = await botClient.GetMeAsync();
 Console.WriteLine($"Hello, World! I am user {me.Id} and my name is {me.FirstName}.");
 Console.ReadLine();
