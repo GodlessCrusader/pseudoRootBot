@@ -21,7 +21,7 @@ var cts  = new CancellationTokenSource();
 
 var timeoutCheckThread = new Thread(() => TimeoutCheck(activeSessions));
 
-var receiverOptions = new ReceiverOptions { // receives all the shit you send
+var receiverOptions = new ReceiverOptions { // receives all you send
     AllowedUpdates = { }
 };
 
@@ -193,23 +193,31 @@ void TimeoutCheck(List<Session> aS)
     
     while(true)
     {   
-        lock(timeoutCheckThreadLock)
+        try
         {
-            if(aS.Exists(x => x.ClosureTime < DateTime.Now))
+            lock(timeoutCheckThreadLock)
             {
-                foreach(Session s in aS.FindAll(x => x.ClosureTime < DateTime.Now))
+                if(aS.Exists(x => x.ClosureTime < DateTime.Now))
                 {
-                    Console.WriteLine("Closed");
-                    s.Close();
+                    foreach(Session s in aS.FindAll(x => x.ClosureTime < DateTime.Now))
+                    {
+                        Console.WriteLine("Closed");
+                        s.Close();
+                    }
+                    aS.RemoveAll(x => x.ClosureTime < DateTime.Now);
                 }
-                aS.RemoveAll(x => x.ClosureTime < DateTime.Now);
-            }
-            if(!(aS.Count>0) || timeoutCheckFlag)
-            {
-                timeoutCheckFlag = false;
-                return;
+                if(!(aS.Count>0) || timeoutCheckFlag)
+                {
+                    timeoutCheckFlag = false;
+                    return;
+                }
             }
         }
+        catch(Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+        
     }   
 
 }

@@ -1,5 +1,3 @@
-using Telegram.Bot;
-
 class CdCommand : Command
 {
 
